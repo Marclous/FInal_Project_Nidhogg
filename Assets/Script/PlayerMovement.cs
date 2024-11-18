@@ -14,20 +14,41 @@ public class PlayerMovement : MonoBehaviour
     private float holdTimer = 0f; // Tracks how long the key has been held
     private bool isMoving = false;
 
-    public float minJumpForce = 5f; // Minimum jump force
-    public float maxJumpForce = 10f; // Maximum jump force
-    private float jumpChargeTime = 0f; // How long the space bar has been held
-    public float maxChargeTime = 1f; // Max time for charging the jump
+
+    public int jumpForce;
+    public float fallMultiplier;
+    public float jumpTime;
+    public float jumpMultiplier;
+
+    Vector2 vecGravity;
+    bool isJumping;
+    float jumpCounter;
+    
     
     void Start()
     {
+        vecGravity = new Vector2(0, -Physics2D.gravity.y);
         rb = GetComponent<Rigidbody2D>();
     }
 
     void Update()
     {
         Move();
-        HandleJumpInput();
+        if(Input.GetKeyDown(KeyCode.Space) && isGrounded) {
+            Jump();
+        }
+        if(rb.velocity.y > 0 && isJumping) {
+            jumpCounter += Time.deltaTime;
+            if(jumpCounter > jumpTime) isJumping = false;
+
+            rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
+        }
+        if(Input.GetKeyUp(KeyCode.Space)) {
+            isJumping = false;
+        }
+        if(rb.velocity.y < 0) {
+            rb.velocity -= vecGravity * fallMultiplier * Time.deltaTime;
+        }
         if (Input.GetKeyDown(KeyCode.LeftShift)) // Use Left Shift for a quick dash
         {
             Dash();
@@ -59,25 +80,13 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
-    void HandleJumpInput()
-    {
-        if (Input.GetKey(KeyCode.Space) && isGrounded) // While space is held
-        {
-            jumpChargeTime += Time.deltaTime;
-            jumpChargeTime = Mathf.Clamp(jumpChargeTime, 0, maxChargeTime); // Clamp the charge time
-        }
-
-        if (Input.GetKeyUp(KeyCode.Space) && isGrounded) // On space release
-        {
-            Jump();
-            jumpChargeTime = 0f; // Reset jump charge time
-        }
-    }
 
     void Jump()
     {
-        float jumpForce = Mathf.Lerp(minJumpForce, maxJumpForce, jumpChargeTime / maxChargeTime);
+        
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        isJumping = true;
+        jumpCounter = 0;
     }
     void Dash()
     {
