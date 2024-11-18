@@ -390,7 +390,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 699497944}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 055de5b41f197434f8390ffc97e5b0b7, type: 3}
   m_Name: 
@@ -415,7 +415,7 @@ GameObject:
   - component: {fileID: 726987818}
   - component: {fileID: 726987820}
   m_Layer: 0
-  m_Name: Square (4)
+  m_Name: Wall1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -545,7 +545,7 @@ GameObject:
   - component: {fileID: 736236133}
   - component: {fileID: 736236135}
   m_Layer: 0
-  m_Name: Square (6)
+  m_Name: Wall3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -675,7 +675,7 @@ GameObject:
   - component: {fileID: 893019307}
   - component: {fileID: 893019309}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Ground1
   m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -805,7 +805,7 @@ GameObject:
   - component: {fileID: 1215622345}
   - component: {fileID: 1215622347}
   m_Layer: 0
-  m_Name: Square (5)
+  m_Name: Wall4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1019,7 +1019,7 @@ GameObject:
   - component: {fileID: 1523040663}
   - component: {fileID: 1523040665}
   m_Layer: 0
-  m_Name: Square (1)
+  m_Name: Ground3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1254,13 +1254,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dashForce: 10
-  speed: 10
+  speed: 5
   speedIncrease: 3
   holdTime: 0.2
-  jumpForce: 3
+  jumpForce: 5
   fallMultiplier: 8
-  jumpTime: 0.3
-  jumpMultiplier: 3
+  jumpTime: 0.2
+  jumpMultiplier: 2.5
 --- !u!50 &1605443060
 Rigidbody2D:
   serializedVersion: 4
@@ -1412,7 +1412,7 @@ GameObject:
   - component: {fileID: 1628278498}
   - component: {fileID: 1628278500}
   m_Layer: 0
-  m_Name: Square (2)
+  m_Name: Ground2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1731,13 +1731,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dashForce: 10
-  speed: 10
+  speed: 5
   speedIncrease: 3
   holdTime: 0.2
-  jumpForce: 3
+  jumpForce: 5
   fallMultiplier: 8
-  jumpTime: 0.3
-  jumpMultiplier: 3
+  jumpTime: 0.2
+  jumpMultiplier: 2.5
 --- !u!50 &1765800943
 Rigidbody2D:
   serializedVersion: 4
@@ -1889,7 +1889,7 @@ GameObject:
   - component: {fileID: 1836374747}
   - component: {fileID: 1836374749}
   m_Layer: 0
-  m_Name: Square (3)
+  m_Name: Wall2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
