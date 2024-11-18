@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-
     public float dashForce = 10f;
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -14,7 +13,6 @@ public class PlayerMovement : MonoBehaviour
     private float holdTimer = 0f; // Tracks how long the key has been held
     private bool isMoving = false;
 
-
     public int jumpForce;
     public float fallMultiplier;
     public float jumpTime;
@@ -23,41 +21,37 @@ public class PlayerMovement : MonoBehaviour
     Vector2 vecGravity;
     bool isJumping;
     float jumpCounter;
-    
-    
+
+    private string playerTag; // Tag to determine the player
+
     void Start()
     {
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
         rb = GetComponent<Rigidbody2D>();
+
+        // Retrieve the tag of the player to distinguish controls
+        playerTag = gameObject.tag;
     }
 
     void Update()
     {
         Move();
-        if(Input.GetKeyDown(KeyCode.Space) && isGrounded) {
-            Jump();
-        }
-        if(rb.velocity.y > 0 && isJumping) {
-            jumpCounter += Time.deltaTime;
-            if(jumpCounter > jumpTime) isJumping = false;
-
-            rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
-        }
-        if(Input.GetKeyUp(KeyCode.Space)) {
-            isJumping = false;
-        }
-        if(rb.velocity.y < 0) {
-            rb.velocity -= vecGravity * fallMultiplier * Time.deltaTime;
-        }
-        if (Input.GetKeyDown(KeyCode.LeftShift)) // Use Left Shift for a quick dash
-        {
-            Dash();
-        }
+        HandleJumpAndDash();
     }
 
     void Move()
     {
-        float xposition = Input.GetAxis("Horizontal");
+        float xposition = 0f;
+
+        // Use different inputs based on the player's tag
+        if (playerTag == "Player 1")
+        {
+            xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
+        }
+        else if (playerTag == "Player 2")
+        {
+            xposition = Input.GetKey(KeyCode.LeftArrow) ? -1 : (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
+        }
 
         if (Mathf.Abs(xposition) > 0.1f) // Player is pressing a movement key
         {
@@ -77,17 +71,57 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
-
     }
 
+    void HandleJumpAndDash()
+    {
+        // Jump input based on player tag
+        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.W) && isGrounded)
+        {
+            Jump();
+        }
+        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
+        {
+            Jump();
+        }
+
+        // Dash input based on player tag
+        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            Dash();
+        }
+        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
+        {
+            Dash();
+        }
+
+        if (rb.velocity.y > 0 && isJumping)
+        {
+            jumpCounter += Time.deltaTime;
+            if (jumpCounter > jumpTime) isJumping = false;
+
+            rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
+        }
+
+        if ((playerTag == "Player 1" && Input.GetKeyUp(KeyCode.W)) ||
+            (playerTag == "Player 2" && Input.GetKeyUp(KeyCode.UpArrow)))
+        {
+            isJumping = false;
+        }
+
+        if (rb.velocity.y < 0)
+        {
+            rb.velocity -= vecGravity * fallMultiplier * Time.deltaTime;
+        }
+    }
 
     void Jump()
     {
-        
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         isJumping = true;
         jumpCounter = 0;
     }
+
     void Dash()
     {
         rb.AddForce(new Vector2(transform.localScale.x * dashForce, 0), ForceMode2D.Impulse);
