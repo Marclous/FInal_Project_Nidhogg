@@ -30,8 +30,20 @@ public class Sword : MonoBehaviour
     private void FollowHolder()
     {
 
-        transform.position = holder.transform.position + padding;
+       if (holder != null)
+    {
+        // Determine the facing direction based on the holder's localScale.x
+        float direction = Mathf.Sign(holder.transform.localScale.x); // +1 for right, -1 for left
+
+        // Update the sword's position relative to the holder's facing direction
+        transform.position = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
+
+        // Update the sword's rotation to match the holder's rotation
         transform.rotation = holder.transform.rotation;
+
+        // Flip the sword if needed to align with the holder's facing direction
+        transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * direction, transform.localScale.y, transform.localScale.z);
+    }
     }
 
     // pick up

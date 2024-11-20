@@ -47,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
         if (playerTag == "Player 1")
         {
             xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
+
         }
         else if (playerTag == "Player 2")
         {
@@ -62,12 +63,29 @@ public class PlayerMovement : MonoBehaviour
             {
                 currentSpeed = speed + speedIncrease;
             }
+             // Flip the sprite to face the moving direction
+            if (xposition > 0)
+            {
+                transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            }
+            else if (xposition < 0)
+            {
+                transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            }
         }
         else // Player stopped moving
         {
             isMoving = false;
             holdTimer = 0f;
             currentSpeed = speed; // Reset to base speed
+            if (playerTag == "Player 1")
+            {
+                transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z); // Face right
+            }
+            else if (playerTag == "Player 2")
+            {
+                transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z); // Face left
+            }
         }
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
