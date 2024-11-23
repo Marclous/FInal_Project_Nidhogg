@@ -160,13 +160,13 @@ public class PlayerMovement : MonoBehaviour
             isCrouching = true;
             
 
-            // 检测下方是否有剑
+            // Check if there is sword on the ground
             Collider2D swordCollider = Physics2D.OverlapCircle(crouchCheckPoint.position, crouchCheckRadius, swordLayer);
             if (swordCollider != null && swordCollider != this)
             {
                 Debug.Log("yes");
                 Sword sword = swordCollider.GetComponent<Sword>();
-                if (sword != null && currentSword == null) // 如果有剑且当前没有持有剑
+                if (sword != null && currentSword == null) // Check sword and owner status
                 {
                     Debug.Log("ready to pick up");
                     PickUpSword(sword);
