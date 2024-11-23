@@ -5,7 +5,7 @@ using UnityEngine;
 public class Sword : MonoBehaviour
 {
     public enum SwordState { Held, Dropped, Thrown } //Three different states of SWORD
-    public SwordState currentState = SwordState.Dropped;
+    public SwordState currentState = SwordState.Held;
     public Vector3 padding;
 
     [SerializeField] private float throwSpeed = 10f; 
@@ -55,8 +55,8 @@ public class Sword : MonoBehaviour
 
         currentState = SwordState.Held;
 
-        rigidSword.velocity = Vector2.zero; // 停止物理运动
-        rigidSword.isKinematic = true; // 取消物理效果
+        //rigidSword.velocity = Vector2.zero; // 停止物理运动
+        //rigidSword.isKinematic = true; // 取消物理效果
     }
 
     // Drop

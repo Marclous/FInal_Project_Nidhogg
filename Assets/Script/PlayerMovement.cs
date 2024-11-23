@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     private float currentSpeed; // Tracks the current movement speed
     private float holdTimer = 0f; // Tracks how long the key has been held
     private bool isMoving = false;
+    
 
     public int jumpForce;
     public float fallMultiplier;
@@ -23,6 +24,14 @@ public class PlayerMovement : MonoBehaviour
     float jumpCounter;
 
     private string playerTag; // Tag to determine the player
+
+    //Duck variables
+    public Transform crouchCheckPoint; 
+    public float crouchCheckRadius = 0.5f; // 检测半径
+    public LayerMask swordLayer;
+
+    private bool isCrouching = false; // 是否处于下蹲状态
+    private Sword currentSword; // 当前持有的剑
 
     void Start()
     {
@@ -37,6 +46,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Move();
         HandleJumpAndDash();
+        HandleCrouch();
     }
 
     void Move()
@@ -139,6 +149,42 @@ public class PlayerMovement : MonoBehaviour
         isJumping = true;
         jumpCounter = 0;
     }
+
+
+    void HandleCrouch()
+    {
+        // check if press down button
+        if ((playerTag == "Player 1" && Input.GetKey(KeyCode.S)) ||
+            (playerTag == "Player 2" && Input.GetKey(KeyCode.DownArrow)))
+        {
+            isCrouching = true;
+            
+
+            // 检测下方是否有剑
+            Collider2D swordCollider = Physics2D.OverlapCircle(crouchCheckPoint.position, crouchCheckRadius, swordLayer);
+            if (swordCollider != null && swordCollider != this)
+            {
+                Debug.Log("yes");
+                Sword sword = swordCollider.GetComponent<Sword>();
+                if (sword != null && currentSword == null) // 如果有剑且当前没有持有剑
+                {
+                    Debug.Log("ready to pick up");
+                    PickUpSword(sword);
+                }
+            }
+        }
+        else
+        {
+            isCrouching = false;
+        }
+    }
+    void PickUpSword(Sword sword)
+    {
+        currentSword = sword;
+        sword.PickUp(gameObject); // 更新剑的持有者
+        Debug.Log($"{playerTag} picked up the sword!");
+    }
+
 
     void Dash()
     {
