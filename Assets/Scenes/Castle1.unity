@@ -1206,6 +1206,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SWORD2
       objectReference: {fileID: 0}
+    - target: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalScale.x
       value: 2.8536491
@@ -1818,6 +1822,11 @@ MonoBehaviour:
   fallMultiplier: 8
   jumpTime: 0.2
   jumpMultiplier: 2.5
+  crouchCheckPoint: {fileID: 1605443063}
+  crouchCheckRadius: 0.5
+  swordLayer:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!50 &1605443060
 Rigidbody2D:
   serializedVersion: 4
@@ -2373,6 +2382,11 @@ MonoBehaviour:
   fallMultiplier: 8
   jumpTime: 0.2
   jumpMultiplier: 2.5
+  crouchCheckPoint: {fileID: 0}
+  crouchCheckRadius: 0.5
+  swordLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!50 &1765800943
 Rigidbody2D:
   serializedVersion: 4
@@ -2972,6 +2986,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: SWORD1
       objectReference: {fileID: 0}
+    - target: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003151279250230028, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: m_Color.b
+      value: 0.6202286
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003151279250230028, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: m_Color.g
+      value: 0.6202286
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003151279250230028, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8050314
+      objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalScale.x
       value: 2.8536491
@@ -2982,11 +3012,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.9387
+      value: 1.26
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.3282
+      value: -3.18
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3022,6 +3052,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7442923083254117315, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+    - {fileID: 4501796543968794237, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
