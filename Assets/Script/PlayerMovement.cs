@@ -27,11 +27,11 @@ public class PlayerMovement : MonoBehaviour
 
     //Duck variables
     public Transform crouchCheckPoint; 
-    public float crouchCheckRadius = 0.5f; // 检测半径
+    public float crouchCheckRadius = 0.5f; 
     public LayerMask swordLayer;
 
-    private bool isCrouching = false; // 是否处于下蹲状态
-    private Sword currentSword; // 当前持有的剑
+    private bool isCrouching = false; 
+    private Sword currentSword; 
 
     void Start()
     {
@@ -57,11 +57,13 @@ public class PlayerMovement : MonoBehaviour
         if (playerTag == "Player 1")
         {
             xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
+            
 
         }
         else if (playerTag == "Player 2")
         {
             xposition = Input.GetKey(KeyCode.LeftArrow) ? -1 : (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
+            
         }
 
         if (Mathf.Abs(xposition) > 0.1f) // Player is pressing a movement key

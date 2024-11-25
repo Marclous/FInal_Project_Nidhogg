@@ -19,7 +19,7 @@ public class PlayerSpawner : MonoBehaviour
         }
     }
 
-    private IEnumerator RespawnPlayer()
+    public IEnumerator RespawnPlayer()
     {
         isRespawning = true;
 
