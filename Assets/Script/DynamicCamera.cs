@@ -1,60 +1,85 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 
 public class DynamicCamera : MonoBehaviour
 {
-    public Transform player1; // Reference to Player 1
-    public Transform player2; // Reference to Player 2
+    public Camera mainCamera; // Reference to the main camera
+    public string player1Tag = "Player 1"; // Tag for player 1
+    public string player2Tag = "Player 2"; // Tag for player 2
 
-    public float smoothSpeed = 0.125f; // Smooth transition speed
-    public Vector2 minCameraBounds; // Minimum camera boundaries (x, y)
-    public Vector2 maxCameraBounds; // Maximum camera boundaries (x, y)
-    public float minZoom = 5f; // Minimum zoom level
-    public float maxZoom = 15f; // Maximum zoom level
-    public float zoomLimiter = 10f; // Controls zoom sensitivity based on distance
+    public GameObject playerPrefab; // Player prefab for respawning
+    public Vector3 spawnOffset = new Vector3(0, 0, 0); // Offset for respawning relative to the camera
+    public float respawnCooldown = 3f; // Cooldown duration before respawning
 
-    private Camera cam;
+    private bool isRespawning = false;
 
-    private void Start()
+    private GameObject player1; // Cached reference for Player 1
+    private GameObject player2; // Cached reference for Player 2
+    private Vector3 remainingPlayerOffset; // Offset of the remaining player relative to the camera
+
+    void Start()
     {
-        cam = GetComponent<Camera>();
-    }
-
-    private void FixedUpdate()
-    {
-        if (player1 == null || player2 == null)
+        // Ensure the camera is assigned
+        if (mainCamera == null)
         {
-            Debug.LogWarning("Player references are missing!");
-            return;
+            mainCamera = Camera.main;
         }
 
-        // Update camera position
-        Vector3 desiredPosition = GetMidpoint();
-        desiredPosition.z = transform.position.z; // Maintain original Z position
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+        // Cache initial player references
+        player1 = GameObject.FindGameObjectWithTag(player1Tag);
+        player2 = GameObject.FindGameObjectWithTag(player2Tag);
 
-        // Update camera zoom
-        float distance = Vector2.Distance(player1.position, player2.position);
-        float desiredZoom = Mathf.Lerp(maxZoom, minZoom, distance / zoomLimiter);
-        cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, desiredZoom, smoothSpeed);
-
-        // Clamp camera to boundaries
-        ClampCamera();
+        // Initialize the relative offset for camera centering
+        if (player1 != null)
+        {
+            remainingPlayerOffset = mainCamera.transform.position - player1.transform.position;
+        }
     }
 
-    private Vector3 GetMidpoint()
+    void Update()
     {
-        Vector3 midpoint = (player1.position + player2.position) / 2f;
-        return midpoint;
+        // Update player references
+        player1 = GameObject.FindGameObjectWithTag(player1Tag);
+        player2 = GameObject.FindGameObjectWithTag(player2Tag);
+
+        if (player1 != null && player2 == null && !isRespawning)
+        {
+            FollowRemainingPlayer(player1.transform);
+          
+        }
+        else if (player2 != null && player1 == null && !isRespawning)
+        {
+            FollowRemainingPlayer(player2.transform);
+            
+        }
+        if (player1 != null && player2 != null)
+        {
+            CenterCameraOnBothPlayers(player1.transform, player2.transform);
+        }
     }
 
-    private void ClampCamera()
+    void FollowRemainingPlayer(Transform playerTransform)
     {
-        Vector3 clampedPosition = transform.position;
-        clampedPosition.x = Mathf.Clamp(clampedPosition.x, minCameraBounds.x, maxCameraBounds.x);
-        clampedPosition.y = Mathf.Clamp(clampedPosition.y, minCameraBounds.y, maxCameraBounds.y);
-        transform.position = clampedPosition;
+        // Keep the camera at the same relative offset to the remaining player
+        mainCamera.transform.position = playerTransform.position + remainingPlayerOffset;
     }
+
+    void CenterCameraOnBothPlayers(Transform player1Transform, Transform player2Transform)
+    {
+        Debug.Log("Following midpoint");
+        // Calculate the midpoint between both players
+        Vector3 midpoint = (player1Transform.position + player2Transform.position) / 2;
+
+        // Center the camera on the midpoint
+        mainCamera.transform.position = new Vector3(
+            midpoint.x,
+            midpoint.y,
+            -10
+        );
+
+        // Update the offset for a new fixed state
+        remainingPlayerOffset = mainCamera.transform.position - midpoint;
+    }
+
+    
 }
-
