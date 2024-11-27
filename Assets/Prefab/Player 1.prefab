@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8018021421372341036}
   - component: {fileID: 2097402139161659741}
   - component: {fileID: 5550423885837042698}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player 1
   m_TagString: Player 1
   m_Icon: {fileID: 0}
@@ -159,7 +159,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &5550423885837042698
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,7 +195,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6407098799555072042}
   - component: {fileID: 8909175475204555826}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}

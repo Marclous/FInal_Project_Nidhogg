@@ -12,17 +12,21 @@ public class Sword : MonoBehaviour
 
     public GameObject holder; // who hold the SWORD now
     private Rigidbody2D rigidSword;
+    private BoxCollider2D boxCollider2D;
 
     private void Awake()
     {
         rigidSword = GetComponent<Rigidbody2D>();
+        boxCollider2D = GetComponent<BoxCollider2D>();
     }
 
     private void Update()
     {
+        Physics2D.IgnoreLayerCollision(3,6);
         if (currentState == SwordState.Held && holder != null)
         {
             FollowHolder();
+            
         }
     }
 
@@ -64,7 +68,7 @@ public class Sword : MonoBehaviour
     {
         currentState = SwordState.Dropped;
         holder = null;
-
+        
         rigidSword.isKinematic = false; // 开启物理效果
     }
 

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1488670875377019733}
   - component: {fileID: 2163810800063672471}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 4118812140132686650}
   - component: {fileID: 3140774427416938072}
   - component: {fileID: 9163046018010795034}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player 2
   m_TagString: Player 2
   m_Icon: {fileID: 0}
@@ -243,7 +243,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &9163046018010795034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,8 +264,8 @@ MonoBehaviour:
   fallMultiplier: 8
   jumpTime: 0.2
   jumpMultiplier: 2.5
-  crouchCheckPoint: {fileID: 0}
+  crouchCheckPoint: {fileID: 1261609355579162999}
   crouchCheckRadius: 0.5
   swordLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
