@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Net;
 
 public class DynamicCamera : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class DynamicCamera : MonoBehaviour
     private GameObject player1; // Cached reference for Player 1
     private GameObject player2; // Cached reference for Player 2
     private Vector3 remainingPlayerOffset; // Offset of the remaining player relative to the camera
+
+    private bool isFixedMode = true; // Starts in Fixed Camera mode
 
     void Start()
     {
@@ -42,12 +45,19 @@ public class DynamicCamera : MonoBehaviour
         player1 = GameObject.FindGameObjectWithTag(player1Tag);
         player2 = GameObject.FindGameObjectWithTag(player2Tag);
 
-        if (player1 != null && player2 == null && !isRespawning)
+        if (isFixedMode)
+        {
+            FixedCamera(); // Fixed camera logic
+            return;
+        }
+
+
+        if (player1 != null && player2 == null)
         {
             FollowRemainingPlayer(player1.transform);
           
         }
-        else if (player2 != null && player1 == null && !isRespawning)
+        else if (player2 != null && player1 == null)
         {
             FollowRemainingPlayer(player2.transform);
             
@@ -56,12 +66,19 @@ public class DynamicCamera : MonoBehaviour
         {
             CenterCameraOnBothPlayers(player1.transform, player2.transform);
         }
+
+        // Both players dead
+        if (player1 == null && player2 == null)
+        {
+            EnterFixedMode();
+        }
     }
 
     void FollowRemainingPlayer(Transform playerTransform)
     {
         // Keep the camera at the same relative offset to the remaining player
-        mainCamera.transform.position = playerTransform.position + remainingPlayerOffset;
+        mainCamera.transform.position = new Vector3(playerTransform.position.x, playerTransform.position.y, -10);
+        
     }
 
     void CenterCameraOnBothPlayers(Transform player1Transform, Transform player2Transform)
@@ -80,6 +97,35 @@ public class DynamicCamera : MonoBehaviour
         // Update the offset for a new fixed state
         remainingPlayerOffset = mainCamera.transform.position - midpoint;
     }
+    void EnterFixedMode()
+    {
+        Debug.Log("Both players dead, entering Fixed Camera mode");
+        isFixedMode = true;
+        // Optionally reset the camera to a fixed position here
+    }
+    private void FixedCamera()
+    {
+        Debug.Log("Fixed Camera mode");
+        // Keep the camera fixed at the current position
+        //mainCamera.transform.position = new Vector3(
+        //    Mathf.Clamp(mainCamera.transform.position.x, fixedCameraBoundsMin.x, fixedCameraBoundsMax.x),
+        //    Mathf.Clamp(mainCamera.transform.position.y, fixedCameraBoundsMin.y, fixedCameraBoundsMax.y),
+        //    -10
+        //);
 
-    
+        // Prevent players from crossing the boundaries (air walls)
+        if (player1 != null)
+        {
+            //KeepPlayerInBounds(player1.transform);
+        }
+
+        if (player2 != null)
+        {
+            //KeepPlayerInBounds(player2.transform);
+        }
+
+
+    }
+
+
 }
