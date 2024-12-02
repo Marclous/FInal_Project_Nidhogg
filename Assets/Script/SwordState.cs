@@ -67,20 +67,42 @@ public class Sword : MonoBehaviour
             // Calculate the target position relative to the holder
             Vector3 targetPosition = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
 
-            // 暂时禁用玩家与剑之间的碰撞
-            Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), true);
 
-            // Smoothly move the sword to the target position using MovePosition
-            //rigidSword.MovePosition(Vector3.Lerp(transform.position, targetPosition, 0.5f)); // Adjust 0.8 for smoothness
-            // Update the sword's rotation to match the holder's rotation
-            //transform.rotation = Quaternion.Lerp(transform.rotation, holder.transform.rotation, 0.5f);
-            rigidSword.MovePosition(targetPosition);
+            if (holder.GetComponent<PlayerMovement>().isRunning) // 玩家快速移动中
+            {
+                // 禁用碰撞体
+                SetCollisionEnabled(false);
+                Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), true);
 
+                // 旋转剑
+                float rotationAngle = 45f * direction; // 根据朝向设置旋转角度
+                transform.position = targetPosition;
+                transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
+            }
+
+
+
+            else
+            {
+                // enable collision
+                SetCollisionEnabled(true);
+                transform.rotation = Quaternion.Euler(0, 0, 0);
+
+                // 暂时禁用玩家与剑之间的碰撞
+                Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), true);
+
+                // Smoothly move the sword to the target position using MovePosition
+                //rigidSword.MovePosition(Vector3.Lerp(transform.position, targetPosition, 0.5f)); // Adjust 0.8 for smoothness
+                // Update the sword's rotation to match the holder's rotation
+                //transform.rotation = Quaternion.Lerp(transform.rotation, holder.transform.rotation, 0.5f);
+                rigidSword.MovePosition(targetPosition);
+                // 重新启用玩家与剑之间的碰撞
+                // 启动协程，在下一帧重新启用碰撞
+                StartCoroutine(ReEnableCollisionWithHolder());
+            }
             // Flip the sword if needed to align with the holder's facing direction
             transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * direction, transform.localScale.y, transform.localScale.z);
-            // 重新启用玩家与剑之间的碰撞
-            // 启动协程，在下一帧重新启用碰撞
-            StartCoroutine(ReEnableCollisionWithHolder());
+
 
         }
     }
@@ -95,6 +117,17 @@ public class Sword : MonoBehaviour
             Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), false);
         }
     }
+    // Collision Enable & Disable
+    private void SetCollisionEnabled(bool isEnabled)
+    {
+        Collider2D[] colliders = GetComponents<Collider2D>(); // 获取该对象上的所有碰撞体
+        foreach (Collider2D collider in colliders)
+        {
+            collider.enabled = isEnabled; // 启用或禁用碰撞体
+        }
+    }
+
+
     // pick up
     public void PickUp(GameObject newHolder)
     {

@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
     private float currentSpeed; // Tracks the current movement speed
     private float holdTimer = 0f; // Tracks how long the key has been held
     private bool isMoving = false;
-    
+    public bool isRunning = false;
 
     public int jumpForce;
     public float fallMultiplier;
@@ -74,7 +74,10 @@ public class PlayerMovement : MonoBehaviour
             if (holdTimer >= holdTime)
             {
                 currentSpeed = speed + speedIncrease;
+                isRunning = true;
+
             }
+
              // Flip the sprite to face the moving direction
             if (xposition > 0)
             {
@@ -88,6 +91,7 @@ public class PlayerMovement : MonoBehaviour
         else // Player stopped moving
         {
             isMoving = false;
+            isRunning = false;
             holdTimer = 0f;
             currentSpeed = speed; // Reset to base speed
             if (playerTag == "Player 1")
