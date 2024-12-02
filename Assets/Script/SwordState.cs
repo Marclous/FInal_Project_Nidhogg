@@ -21,6 +21,7 @@ public class Sword : MonoBehaviour
     private Vector3 currentOffset; // Current offset based on stance
     private Vector2 originalPosition;
     private Transform swordTransform;
+    public int death_num = 0;
 
     private void Awake()
     {
@@ -244,6 +245,7 @@ public class Sword : MonoBehaviour
             if (!collision.gameObject.CompareTag(holder.tag) && collision.gameObject.layer == 6)
             {
                 Debug.Log("Kill"+ collision.gameObject.name);
+                death_num++;
                 Destroy(collision.gameObject);
             }
 

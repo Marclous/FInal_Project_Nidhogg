@@ -9,9 +9,10 @@ public class PlayerSpawner : MonoBehaviour
     public float respawnCooldown = 3f; // Cooldown in seconds
 
     public bool isRespawning = false;
-
+    public Sword swordstate;
     void Update()
     {
+        swordstate = GetComponent<Sword>();
         // Check if the player is null and start respawn process if not already respawning
         if (GameObject.FindGameObjectWithTag(playerPrefab.tag) == null && !isRespawning)
         {
@@ -36,6 +37,7 @@ public class PlayerSpawner : MonoBehaviour
         if (playerPrefab != null)
         {
             Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
+            //swordstate.death_num--;
         }
 
         isRespawning = false; // Reset respawning flag
