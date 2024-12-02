@@ -19,11 +19,13 @@ public class Sword : MonoBehaviour
     public Vector3 highPositionOffset = new Vector3(0.5f, 1f, 0); // Offset for high position
     public Vector3 midPositionOffset = new Vector3(0.5f, 0.5f, 0); // Offset for mid position
     public Vector3 lowPositionOffset = new Vector3(0.5f, 0f, 0); // Offset for low position
+    public Vector3[] PositionOffset = new [] {new Vector3(0.5f, 1f, 0), new Vector3(0.5f, 0.5f, 0), new Vector3(0.5f, 0f, 0)};
+    private int position;
     private Vector3 currentOffset; // Current offset based on stance
     private Vector2 originalPosition;
     private Transform swordTransform;
     public Camera cam;
-    public DynamicCamera camera;
+    public new DynamicCamera camera;
 
 
     private bool isAiming = false; // 是否处于瞄准投掷状态
@@ -46,7 +48,7 @@ public class Sword : MonoBehaviour
 
     private void Update()
     {
-
+        currentOffset = PositionOffset[position];
         if (holder != null && currentState == SwordState.Held)
         {
             if (Input.GetKeyDown(KeyCode.U)) // 进入瞄准投掷状态
@@ -81,13 +83,13 @@ public class Sword : MonoBehaviour
 
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1") // Attack
+        if (Input.GetKeyDown(KeyCode.F) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1") // Attack
         {
             isAttacking = true;
             StartCoroutine(Thrust());
         }
 
-        if (Input.GetKeyDown(KeyCode.RightShift) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2") // Attack
+        if (Input.GetKeyDown(KeyCode.M) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2") // Attack
         {
             isAttacking = true;
             StartCoroutine(Thrust());
@@ -98,30 +100,24 @@ public class Sword : MonoBehaviour
             FollowHolder();
             Physics2D.IgnoreLayerCollision(3,6,false);
         }
-        if (Input.GetKeyDown(KeyCode.R) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1")
+        if (Input.GetKeyDown(KeyCode.W) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1" && position>0)
         {
-            currentOffset = highPositionOffset; // High stance
+            position--;
         }
-        else if (Input.GetKeyDown(KeyCode.F) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1")
+        else if (Input.GetKeyDown(KeyCode.S) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1" && position<2)
         {
-            currentOffset = lowPositionOffset; // Low stance
+            position++;
         }
-        else if (Input.GetKeyDown(KeyCode.V) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1")
+       
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2" && position>0)
         {
-            currentOffset = midPositionOffset; // Mid stance
+            position--;
         }
-        if (Input.GetKeyDown(KeyCode.O) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2")
+        else if (Input.GetKeyDown(KeyCode.DownArrow) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2"&& position<2)
         {
-            currentOffset = highPositionOffset; // High stance
+            position++;
         }
-        else if (Input.GetKeyDown(KeyCode.K) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2")
-        {
-            currentOffset = lowPositionOffset; // Low stance
-        }
-        else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2")
-        {
-            currentOffset = midPositionOffset; // Mid stance
-        }
+
         if (holder != null) 
         {
             // Update sword position relative to player
@@ -143,7 +139,7 @@ public class Sword : MonoBehaviour
         float facingDirection = holder.transform.localScale.x;
         Vector3 target = new Vector3(
             HolderPosition.x + currentOffset.x * facingDirection,
-             HolderPosition.y + currentOffset.y,
+            HolderPosition.y + currentOffset.y,
             HolderPosition.z + currentOffset.z
         );
 

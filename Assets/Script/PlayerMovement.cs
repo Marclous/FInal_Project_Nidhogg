@@ -71,7 +71,11 @@ public class PlayerMovement : MonoBehaviour
        }
 
 
-
+        if(isRunning) {
+            Physics2D.IgnoreLayerCollision(6,6);
+        }else if(!isRunning){
+            Physics2D.IgnoreLayerCollision(6,6,false);
+        }
 
         Move();
         HandleJumpAndDash();
@@ -146,26 +150,26 @@ public class PlayerMovement : MonoBehaviour
     void HandleJumpAndDash()
     {
         // Jump input based on player tag
-        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.W) && isGrounded)
+        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.G) && isGrounded)
         {
             Debug.Log("Jump Sucess");
             Jump();
             
         }
-        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
+        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.N) && isGrounded)
         {
             Jump();
         }
 
         // Dash input based on player tag
-        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            Dash();
-        }
-        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
-        {
-            Dash();
-        }
+        // if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
+        // {
+        //     Dash();
+        // }
+        // else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
+        // {
+        //     Dash();
+        // }
 
         if (rb.velocity.y > 0 && isJumping)
         {
@@ -175,11 +179,11 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
         }
 
-        if ((playerTag == "Player 1" && Input.GetKeyUp(KeyCode.W)) ||
-            (playerTag == "Player 2" && Input.GetKeyUp(KeyCode.UpArrow)))
-        {
-            isJumping = false;
-        }
+        // if ((playerTag == "Player 1" && Input.GetKeyUp(KeyCode.W)) ||
+        //     (playerTag == "Player 2" && Input.GetKeyUp(KeyCode.UpArrow)))
+        // {
+        //     isJumping = false;
+        // }
 
         if (rb.velocity.y < 0)
         {
