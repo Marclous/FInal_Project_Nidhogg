@@ -15,15 +15,19 @@ public class Sword : MonoBehaviour
     private BoxCollider2D boxCollider2D;
     public float thrustSpeed = 10f;
     private bool isAttacking = false;
-
+    public Vector3 highPositionOffset = new Vector3(0.5f, 1f, 0); // Offset for high position
+    public Vector3 midPositionOffset = new Vector3(0.5f, 0.5f, 0); // Offset for mid position
+    public Vector3 lowPositionOffset = new Vector3(0.5f, 0f, 0); // Offset for low position
+    private Vector3 currentOffset; // Current offset based on stance
     private Vector2 originalPosition;
-
+    private Transform swordTransform;
 
     private void Awake()
     {
+        
         rigidSword = GetComponent<Rigidbody2D>();
         boxCollider2D = GetComponent<BoxCollider2D>();
-
+        currentOffset = midPositionOffset; // Start with mid position
         // Enable interpolation for smoother movement
         //rigidSword.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
@@ -53,8 +57,54 @@ public class Sword : MonoBehaviour
             FollowHolder();
             Physics2D.IgnoreLayerCollision(3,6,false);
         }
+        if (Input.GetKeyDown(KeyCode.R) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1")
+        {
+            currentOffset = highPositionOffset; // High stance
+        }
+        else if (Input.GetKeyDown(KeyCode.F) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1")
+        {
+            currentOffset = lowPositionOffset; // Low stance
+        }
+        else if (Input.GetKeyDown(KeyCode.V) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1")
+        {
+            currentOffset = midPositionOffset; // Mid stance
+        }
+        // Update sword position relative to player
+        AdjustSwordPosition();
     }
 
+    void AdjustSwordPosition()
+    {
+        // Get the player's facing direction
+        float facingDirection = holder.transform.localScale.x;
+
+        // Adjust the sword's position based on the current offset and facing direction
+        transform.localPosition = new Vector3(
+            HolderPosition.x + currentOffset.x * facingDirection,
+             HolderPosition.y+currentOffset.y,
+            HolderPosition.z+currentOffset.z
+        );
+
+        // Flip the sword's local rotation if needed (optional, for visual alignment)
+        //swordTransform.localScale = new Vector3(facingDirection, 1, 1);
+    }
+    private IEnumerator Thrust()
+    {
+        float elapsedTime = 0f;
+        float duration = 0.2f; // Attack duration
+
+        Vector3 targetPosition = transform.localPosition + new Vector3(holder.transform.localScale.x * 1.5f,0,0);
+
+        while (elapsedTime < duration)
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        
+        isAttacking = false;
+    }
     // follow the holder
     private void FollowHolder()
     {
@@ -138,23 +188,7 @@ public class Sword : MonoBehaviour
         //rigidSword.velocity = Vector2.zero; // 停止物理运动
         //rigidSword.isKinematic = true; // 取消物理效果
     }
-    private IEnumerator Thrust()
-    {
-        float elapsedTime = 0f;
-        float duration = 0.2f; // Attack duration
-
-        Vector3 targetPosition = HolderPosition + new Vector3(holder.transform.localScale.x * 1.5f,0,0);
-
-        while (elapsedTime < duration)
-        {
-            transform.localPosition = Vector3.Lerp(HolderPosition, targetPosition, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        
-        isAttacking = false;
-    }
+    
     // Drop
     public void Drop()
     {
