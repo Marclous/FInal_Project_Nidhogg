@@ -69,21 +69,40 @@ public class Sword : MonoBehaviour
         {
             currentOffset = midPositionOffset; // Mid stance
         }
-        // Update sword position relative to player
-        AdjustSwordPosition();
+        if (Input.GetKeyDown(KeyCode.O) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2")
+        {
+            currentOffset = highPositionOffset; // High stance
+        }
+        else if (Input.GetKeyDown(KeyCode.K) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2")
+        {
+            currentOffset = lowPositionOffset; // Low stance
+        }
+        else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2")
+        {
+            currentOffset = midPositionOffset; // Mid stance
+        }
+        if (holder != null) 
+        {
+            // Update sword position relative to player
+            AdjustSwordPosition();
+
+        }
+
+
     }
 
     void AdjustSwordPosition()
     {
         // Get the player's facing direction
         float facingDirection = holder.transform.localScale.x;
+        Vector3 target = new Vector3(
+            HolderPosition.x + currentOffset.x * facingDirection,
+             HolderPosition.y + currentOffset.y,
+            HolderPosition.z + currentOffset.z
+        );
 
         // Adjust the sword's position based on the current offset and facing direction
-        transform.localPosition = new Vector3(
-            HolderPosition.x + currentOffset.x * facingDirection,
-             HolderPosition.y+currentOffset.y,
-            HolderPosition.z+currentOffset.z
-        );
+        rigidSword.MovePosition(target);
 
         // Flip the sword's local rotation if needed (optional, for visual alignment)
         //swordTransform.localScale = new Vector3(facingDirection, 1, 1);
