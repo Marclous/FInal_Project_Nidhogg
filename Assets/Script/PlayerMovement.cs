@@ -148,8 +148,9 @@ public class PlayerMovement : MonoBehaviour
         // Jump input based on player tag
         if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.W) && isGrounded)
         {
-            Jump();
             Debug.Log("Jump Sucess");
+            Jump();
+            
         }
         else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
         {

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Sword : MonoBehaviour
 {
@@ -24,6 +25,14 @@ public class Sword : MonoBehaviour
     public Camera cam;
     public DynamicCamera camera;
 
+
+    private bool isAiming = false; // 是否处于瞄准投掷状态
+    private Vector2 aimDirection = Vector2.right; // 初始投掷方向
+    private Transform aimTarget; // 瞄准点的目标
+    public Vector3 aimOffset = new Vector3(0.5f, 0.5f, 0); // 瞄准状态下的偏移量
+
+
+
     private void Awake()
     {
         camera = cam.GetComponent<DynamicCamera>();
@@ -37,7 +46,36 @@ public class Sword : MonoBehaviour
 
     private void Update()
     {
-        if (currentState == SwordState.Dropped && holder == null)
+
+        if (holder != null && currentState == SwordState.Held)
+        {
+            if (Input.GetKeyDown(KeyCode.U)) // 进入瞄准投掷状态
+            {
+                isAiming = true;
+                Debug.Log("Aiming...");
+            }
+
+            if (Input.GetKeyUp(KeyCode.U)) // 退出瞄准投掷状态
+            {
+                isAiming = false;
+                Debug.Log("Stopped Aiming");
+
+                // 恢复剑的默认旋转
+                transform.rotation = Quaternion.Euler(0, 0, 0);
+            }
+
+            if (isAiming)
+            {
+                HandleAimingRotation(); // 调用持续旋转逻辑
+
+                // 允许按键 I 投掷
+                if (Input.GetKeyDown(KeyCode.I))
+                {
+                    Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0)); // 使用玩家的朝向作为投掷方向
+                }
+            }
+        }
+        if (holder == null && currentState == SwordState.Dropped )
         {
             Physics2D.IgnoreLayerCollision(3, 6,true);
 
@@ -88,7 +126,12 @@ public class Sword : MonoBehaviour
         {
             // Update sword position relative to player
             AdjustSwordPosition();
-
+            Physics2D.IgnoreLayerCollision(3, 3, false);
+        }
+        if (holder == null)
+        {
+            SetCollisionEnabled(true);
+            Physics2D.IgnoreLayerCollision(3, 3);
         }
 
 
@@ -148,18 +191,27 @@ public class Sword : MonoBehaviour
                 Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), true);
 
                 // 旋转剑
-                float rotationAngle = 45f * direction; // 根据朝向设置旋转角度
-                transform.position = HolderPosition;
-                transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
+
+
+                if (!isAiming)
+                {
+                    float rotationAngle = 45f * direction; // 根据朝向设置旋转角度
+                    transform.position = HolderPosition;
+                    transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
+                }
+
             }
-
-
 
             else
             {
                 // enable collision
                 SetCollisionEnabled(true);
-                transform.rotation = Quaternion.Euler(0, 0, 0);
+
+                if (!isAiming)
+                {
+                    transform.rotation = Quaternion.Euler(0, 0, 0);
+                }
+ 
 
                 // 暂时禁用玩家与剑之间的碰撞
                 Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), true);
@@ -210,7 +262,18 @@ public class Sword : MonoBehaviour
         //rigidSword.velocity = Vector2.zero; // 停止物理运动
         //rigidSword.isKinematic = true; // 取消物理效果
     }
-    
+    private void HandleAimingRotation()
+    {
+        // 获取玩家的朝向
+        float direction = Mathf.Sign(holder.transform.localScale.x);
+
+        // 持续调整剑的旋转角度
+        transform.rotation = Quaternion.Euler(0, 0, -105f * direction);
+        // 更新剑的位置，在瞄准状态下更靠近玩家
+        Vector3 adjustedAimOffset = new Vector3(aimOffset.x * direction, aimOffset.y, aimOffset.z);
+        transform.position = holder.transform.position + adjustedAimOffset;
+
+    }
     // Drop
     public void Drop()
     {
@@ -220,26 +283,43 @@ public class Sword : MonoBehaviour
         //rigidSword.isKinematic = false; // 开启物理效果
     }
 
+
     // Throw
     public void Throw(Vector2 direction)
     {
+        
+        if (currentState != SwordState.Held) return; // Ensure sword is currently held
+
+        // Update state
         currentState = SwordState.Thrown;
+        GameObject previousHolder = holder; // Save the current holder
         holder = null;
 
-        //rigidSword.isKinematic = false; // 开启物理效果
-        //rigidSword.velocity = direction.normalized * throwSpeed;
+        // Enable physical motion
+        rigidSword.isKinematic = false;
+        rigidSword.velocity = direction.normalized * throwSpeed;
+
+        if (previousHolder != null)
+        {
+            Physics2D.IgnoreCollision(previousHolder.GetComponent<Collider2D>(), boxCollider2D, true);
+            StartCoroutine(ReenableCollisionWithPlayer(previousHolder));
+        }
+        // Start rotating the sword while it's in the air
+        //StartCoroutine(SpinSwordInAir());
+
+    }
+    //临时方法，可在功能完善后删除
+    private IEnumerator ReenableCollisionWithPlayer(GameObject previousHolder)
+    {
+        yield return new WaitForSeconds(0.2f); // Wait for a short moment
+        if (previousHolder != null)
+        {
+            Physics2D.IgnoreCollision(previousHolder.GetComponent<Collider2D>(), boxCollider2D, false);
+        }
     }
 
-    //private void OnCollisionEnter2D(Collision2D collision)
-    //{
-    //    if (currentState == SwordState.Thrown)
-    //    {
-    //        // If enemy touch the sword
-    //        Debug.Log($"Sword hit {collision.gameObject.name}");
-    //        rigidSword.velocity = Vector2.zero;
-    //        currentState = SwordState.Dropped;
-    //    }
-    //}
+
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -251,6 +331,16 @@ public class Sword : MonoBehaviour
                 Destroy(collision.gameObject);
             }
 
+        }
+
+        if(currentState == SwordState.Thrown)
+        {
+            if (collision.gameObject.layer == 6)
+            {
+                Debug.Log("Kill" + collision.gameObject.name);
+                camera.deathnum++;
+                Destroy(collision.gameObject);
+            }
         }
 
     }

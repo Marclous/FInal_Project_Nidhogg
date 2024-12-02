@@ -91,7 +91,7 @@ public class DynamicCamera : MonoBehaviour
 
     void CenterCameraOnBothPlayers(Transform player1Transform, Transform player2Transform)
     {
-        Debug.Log("Following midpoint");
+        //Debug.Log("Following midpoint");
         // Calculate the midpoint between both players
         Vector3 midpoint = (player1Transform.position + player2Transform.position) / 2;
 
