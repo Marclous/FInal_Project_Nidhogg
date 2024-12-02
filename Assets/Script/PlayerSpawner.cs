@@ -13,10 +13,11 @@ public class PlayerSpawner : MonoBehaviour
     void Update()
     {
         // Check if the player is null and start respawn process if not already respawning
-        if (GameObject.FindGameObjectWithTag("Player 1") == null && !isRespawning)
+        if (GameObject.FindGameObjectWithTag(playerPrefab.tag) == null && !isRespawning)
         {
             StartCoroutine(RespawnPlayer());
         }
+        
     }
 
     public IEnumerator RespawnPlayer()

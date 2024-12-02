@@ -105,7 +105,7 @@ public class DynamicCamera : MonoBehaviour
     }
     private void FixedCamera()
     {
-        Debug.Log("Fixed Camera mode");
+        //Debug.Log("Fixed Camera mode");
         // Keep the camera fixed at the current position
         //mainCamera.transform.position = new Vector3(
         //    Mathf.Clamp(mainCamera.transform.position.x, fixedCameraBoundsMin.x, fixedCameraBoundsMax.x),

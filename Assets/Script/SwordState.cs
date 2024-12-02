@@ -7,12 +7,16 @@ public class Sword : MonoBehaviour
     public enum SwordState { Held, Dropped, Thrown } //Three different states of SWORD
     public SwordState currentState = SwordState.Held;
     public Vector3 padding;
-
+    public Vector3 HolderPosition;
     [SerializeField] private float throwSpeed = 10f; 
 
     public GameObject holder; // who hold the SWORD now
     private Rigidbody2D rigidSword;
     private BoxCollider2D boxCollider2D;
+    public float thrustSpeed = 10f;
+    private bool isAttacking = false;
+
+    private Vector2 originalPosition;
 
 
     private void Awake()
@@ -28,16 +32,26 @@ public class Sword : MonoBehaviour
     {
         if (currentState == SwordState.Dropped && holder == null)
         {
-            Physics2D.IgnoreLayerCollision(3, 6);
+            Physics2D.IgnoreLayerCollision(3, 6,true);
 
         }
 
+        if (Input.GetKeyDown(KeyCode.Space) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 1") // Attack
+        {
+            isAttacking = true;
+            StartCoroutine(Thrust());
+        }
 
+        if (Input.GetKeyDown(KeyCode.RightShift) && !isAttacking && currentState == SwordState.Held && holder.tag == "Player 2") // Attack
+        {
+            isAttacking = true;
+            StartCoroutine(Thrust());
+        }
 
         if (currentState == SwordState.Held && holder != null)
         {
             FollowHolder();
-            
+            Physics2D.IgnoreLayerCollision(3,6,false);
         }
     }
 
@@ -45,27 +59,14 @@ public class Sword : MonoBehaviour
     private void FollowHolder()
     {
 
-    //   if (holder != null)
-    //{
-    //    // Determine the facing direction based on the holder's localScale.x
-    //    float direction = Mathf.Sign(holder.transform.localScale.x); // +1 for right, -1 for left
-
-    //    // Update the sword's position relative to the holder's facing direction
-    //    transform.position = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
-
-    //    // Update the sword's rotation to match the holder's rotation
-    //    transform.rotation = holder.transform.rotation;
-
-    //    // Flip the sword if needed to align with the holder's facing direction
-    //    transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * direction, transform.localScale.y, transform.localScale.z);
-    //}
+    
         if (holder != null)
         {
             // Determine the facing direction based on the holder's localScale.x
             float direction = Mathf.Sign(holder.transform.localScale.x); // +1 for right, -1 for left
 
             // Calculate the target position relative to the holder
-            Vector3 targetPosition = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
+            HolderPosition = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
 
 
             if (holder.GetComponent<PlayerMovement>().isRunning) // 玩家快速移动中
@@ -76,7 +77,7 @@ public class Sword : MonoBehaviour
 
                 // 旋转剑
                 float rotationAngle = 45f * direction; // 根据朝向设置旋转角度
-                transform.position = targetPosition;
+                transform.position = HolderPosition;
                 transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
             }
 
@@ -92,10 +93,7 @@ public class Sword : MonoBehaviour
                 Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), GetComponent<Collider2D>(), true);
 
                 // Smoothly move the sword to the target position using MovePosition
-                //rigidSword.MovePosition(Vector3.Lerp(transform.position, targetPosition, 0.5f)); // Adjust 0.8 for smoothness
-                // Update the sword's rotation to match the holder's rotation
-                //transform.rotation = Quaternion.Lerp(transform.rotation, holder.transform.rotation, 0.5f);
-                rigidSword.MovePosition(targetPosition);
+                rigidSword.MovePosition(HolderPosition);
                 // 重新启用玩家与剑之间的碰撞
                 // 启动协程，在下一帧重新启用碰撞
                 StartCoroutine(ReEnableCollisionWithHolder());
@@ -140,7 +138,23 @@ public class Sword : MonoBehaviour
         //rigidSword.velocity = Vector2.zero; // 停止物理运动
         //rigidSword.isKinematic = true; // 取消物理效果
     }
+    private IEnumerator Thrust()
+    {
+        float elapsedTime = 0f;
+        float duration = 0.2f; // Attack duration
 
+        Vector3 targetPosition = HolderPosition + new Vector3(holder.transform.localScale.x * 1.5f,0,0);
+
+        while (elapsedTime < duration)
+        {
+            transform.localPosition = Vector3.Lerp(HolderPosition, targetPosition, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        
+        isAttacking = false;
+    }
     // Drop
     public void Drop()
     {
@@ -173,9 +187,13 @@ public class Sword : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("sword"))
-        {
-            Debug.Log($"Sword collided with {collision.gameObject.name}");
+        if(holder != null){
+            if (!collision.gameObject.CompareTag(holder.tag) && collision.gameObject.layer == 6)
+            {
+                Debug.Log("Kill"+ collision.gameObject.name);
+                Destroy(collision.gameObject);
+            }
+
         }
 
     }
