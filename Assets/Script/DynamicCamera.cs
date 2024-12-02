@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Net;
 
@@ -19,16 +19,22 @@ public class DynamicCamera : MonoBehaviour
     private Vector3 remainingPlayerOffset; // Offset of the remaining player relative to the camera
 
     private bool isFixedMode = true; // Starts in Fixed Camera mode
-    public Sword swordstate;
+    //public Sword swordstate;
+    public int deathnum;
 
     void Start()
     {
+       // GameObject swordObject = GameObject.FindWithTag("Sword"); // 假设 Sword 有 "Sword" 标签
+        //if (swordObject != null)
+        //{
+        //    swordstate = swordObject.GetComponent<Sword>();
+        //}
         // Ensure the camera is assigned
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
         }
-        Sword swordstate = GetComponent<Sword>();
+
 
         // Cache initial player references
         player1 = GameObject.FindGameObjectWithTag(player1Tag);
@@ -117,10 +123,10 @@ public class DynamicCamera : MonoBehaviour
         //);
 
         // Prevent players from crossing the boundaries (air walls)
-        // if(swordstate.death_num == 1)
-        // {
-            // isFixedMode = false;
-        // }
+         if(deathnum == 1)
+         {
+             isFixedMode = false;
+         }
 
 
 

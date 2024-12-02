@@ -21,11 +21,13 @@ public class Sword : MonoBehaviour
     private Vector3 currentOffset; // Current offset based on stance
     private Vector2 originalPosition;
     private Transform swordTransform;
-    public int death_num = 0;
+    public Camera cam;
+    public DynamicCamera camera;
 
     private void Awake()
     {
-        
+        camera = cam.GetComponent<DynamicCamera>();
+
         rigidSword = GetComponent<Rigidbody2D>();
         boxCollider2D = GetComponent<BoxCollider2D>();
         currentOffset = midPositionOffset; // Start with mid position
@@ -245,7 +247,7 @@ public class Sword : MonoBehaviour
             if (!collision.gameObject.CompareTag(holder.tag) && collision.gameObject.layer == 6)
             {
                 Debug.Log("Kill"+ collision.gameObject.name);
-                death_num++;
+                camera.deathnum++;
                 Destroy(collision.gameObject);
             }
 

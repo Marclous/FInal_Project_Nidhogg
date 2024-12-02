@@ -460,6 +460,7 @@ MonoBehaviour:
   spawnOffset: {x: 8, y: 0, z: 5}
   respawnCooldown: 1
   isRespawning: 0
+  swordstate: {fileID: 0}
 --- !u!4 &591497896
 Transform:
   m_ObjectHideFlags: 0
@@ -754,6 +755,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 2469390966789420158, guid: ae3f0f7a826ea1f4eba6457c44171380, type: 3}
   spawnOffset: {x: 0, y: 0, z: 0}
   respawnCooldown: 5
+  deathnum: 0
 --- !u!1 &726987817
 GameObject:
   m_ObjectHideFlags: 0
@@ -1153,6 +1155,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6457094727078393540, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: cam
+      value: 
+      objectReference: {fileID: 699497946}
+    - target: {fileID: 6457094727078393540, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: holder
       value: 
       objectReference: {fileID: 0}
@@ -1186,11 +1192,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.76
+      value: 2.8
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.76
+      value: 3.68
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2565,6 +2571,7 @@ MonoBehaviour:
   spawnOffset: {x: -8, y: 0, z: 5}
   respawnCooldown: 1
   isRespawning: 0
+  swordstate: {fileID: 0}
 --- !u!4 &1982066642
 Transform:
   m_ObjectHideFlags: 0
@@ -2654,6 +2661,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6457094727078393540, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
+      propertyPath: cam
+      value: 
+      objectReference: {fileID: 699497946}
+    - target: {fileID: 6457094727078393540, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: holder
       value: 
       objectReference: {fileID: 0}
@@ -2699,11 +2710,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.6
+      value: -2.3
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.14
+      value: 3.7
       objectReference: {fileID: 0}
     - target: {fileID: 9202082820291604578, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_LocalPosition.z
