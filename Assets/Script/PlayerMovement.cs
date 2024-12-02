@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.UI;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -6,13 +7,14 @@ public class PlayerMovement : MonoBehaviour
     public float dashForce = 10f;
     private Rigidbody2D rb;
     private bool isGrounded;
+    
     [SerializeField] private float speed;
     public float speedIncrease = 2f; // Additional speed after holding the key
     public float holdTime = 1f; // Time required to hold before speed increases
     private float currentSpeed; // Tracks the current movement speed
     private float holdTimer = 0f; // Tracks how long the key has been held
     private bool isMoving = false;
-    
+    public bool isRunning = false;
 
     public int jumpForce;
     public float fallMultiplier;
@@ -23,7 +25,7 @@ public class PlayerMovement : MonoBehaviour
     bool isJumping;
     float jumpCounter;
 
-    private string playerTag; // Tag to determine the player
+    public string playerTag; // Tag to determine the player
 
     //Duck variables
     public Transform crouchCheckPoint; 
@@ -32,6 +34,10 @@ public class PlayerMovement : MonoBehaviour
 
     private bool isCrouching = false; 
     private Sword currentSword; 
+    
+    public Transform opponent;// Get opponent
+    public string opponentTag;
+
 
     void Start()
     {
@@ -44,9 +50,38 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+       if(playerTag != null){
+       if(playerTag == "Player 1"){
+            opponentTag =  "Player 2";
+        }
+       if(playerTag == "Player 2"){
+            opponentTag =  "Player 1";
+        }
+
+
+        // 检测场上是否有对手
+        DetectOpponent();
+
+        // 如果存在对手，则调整朝向
+        if (opponent != null)
+        {
+            FaceOpponent();
+        }
+
+       }
+
+
+        if(isRunning) {
+            Physics2D.IgnoreLayerCollision(6,6);
+        }else if(!isRunning){
+            Physics2D.IgnoreLayerCollision(6,6,false);
+        }
+
         Move();
         HandleJumpAndDash();
         HandleCrouch();
+
+
     }
 
     void Move()
@@ -74,7 +109,10 @@ public class PlayerMovement : MonoBehaviour
             if (holdTimer >= holdTime)
             {
                 currentSpeed = speed + speedIncrease;
+                isRunning = true;
+
             }
+
              // Flip the sprite to face the moving direction
             if (xposition > 0)
             {
@@ -88,16 +126,22 @@ public class PlayerMovement : MonoBehaviour
         else // Player stopped moving
         {
             isMoving = false;
+            isRunning = false;
             holdTimer = 0f;
             currentSpeed = speed; // Reset to base speed
-            if (playerTag == "Player 1")
-            {
-                transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z); // Face right
-            }
-            else if (playerTag == "Player 2")
-            {
-                transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z); // Face left
-            }
+
+            // if (opponent.position.x < transform.position.x)
+            // {
+            //     Debug.Log(opponent.position.x);
+            //     Debug.Log(opponent.gameObject.name+" on the Left of" + gameObject.name);
+            //     transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z); // Face left
+            // }
+            // else if (opponent.position.x > transform.position.x)
+            // {
+            //     Debug.Log(opponent.position.x);
+            //     Debug.Log(opponent.gameObject.name+" on the right of" + gameObject.name);
+            //     transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z); // Face right
+            // }
         }
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
@@ -106,24 +150,26 @@ public class PlayerMovement : MonoBehaviour
     void HandleJumpAndDash()
     {
         // Jump input based on player tag
-        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.W) && isGrounded)
+        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.G) && isGrounded)
         {
+            Debug.Log("Jump Sucess");
             Jump();
+            
         }
-        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
+        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.N) && isGrounded)
         {
             Jump();
         }
 
         // Dash input based on player tag
-        if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            Dash();
-        }
-        else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
-        {
-            Dash();
-        }
+        // if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
+        // {
+        //     Dash();
+        // }
+        // else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
+        // {
+        //     Dash();
+        // }
 
         if (rb.velocity.y > 0 && isJumping)
         {
@@ -133,11 +179,11 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
         }
 
-        if ((playerTag == "Player 1" && Input.GetKeyUp(KeyCode.W)) ||
-            (playerTag == "Player 2" && Input.GetKeyUp(KeyCode.UpArrow)))
-        {
-            isJumping = false;
-        }
+        // if ((playerTag == "Player 1" && Input.GetKeyUp(KeyCode.W)) ||
+        //     (playerTag == "Player 2" && Input.GetKeyUp(KeyCode.UpArrow)))
+        // {
+        //     isJumping = false;
+        // }
 
         if (rb.velocity.y < 0)
         {
@@ -207,5 +253,41 @@ public class PlayerMovement : MonoBehaviour
         {
             isGrounded = false;
         }
+    }
+
+    void DetectOpponent()
+    {
+        GameObject opponentObject = GameObject.FindWithTag(opponentTag); // 查找带有指定标签的对象
+        if (opponentObject != null)
+        {
+            opponent = opponentObject.transform; // 如果找到对手，则更新引用
+        }
+        else
+        {
+            opponent = null; // 如果没有找到对手，则清空引用
+        }
+    }
+
+    // 面向对手
+    void FaceOpponent()
+    {
+        Vector3 direction = (opponent.position - transform.position).normalized;
+
+        // 对于 2D 游戏，翻转玩家朝向
+        if (direction.x < 0)
+        {
+            transform.localScale = new Vector3(-1, transform.localScale.y, 1); // 面向左侧
+        }
+        else
+        {
+            transform.localScale = new Vector3(1, transform.localScale.y, 1); // 面向右侧
+        }
+
+        // 对于 3D 游戏，使用旋转朝向对手
+        // Uncomment the following if working in 3D
+        /*
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+        */
     }
 }

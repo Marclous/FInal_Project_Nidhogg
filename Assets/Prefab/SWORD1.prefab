@@ -146,8 +146,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 1
   padding: {x: 0, y: 0, z: 0}
+  HolderPosition: {x: 0, y: 0, z: 0}
   throwSpeed: 10
   holder: {fileID: 0}
+  thrustSpeed: 10
 --- !u!50 &4501796543968794237
 Rigidbody2D:
   serializedVersion: 4
@@ -174,4 +176,4 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4

@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - Player 2
   - Player 1
+  - sword
+  - wall
   layers:
   - Default
   - TransparentFX
@@ -14,7 +16,7 @@ TagManager:
   - Sword
   - Water
   - UI
-  - 
+  - Player
   - 
   - 
   - 

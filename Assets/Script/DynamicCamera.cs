@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Net;
 
@@ -19,14 +19,22 @@ public class DynamicCamera : MonoBehaviour
     private Vector3 remainingPlayerOffset; // Offset of the remaining player relative to the camera
 
     private bool isFixedMode = true; // Starts in Fixed Camera mode
+    //public Sword swordstate;
+    public int deathnum;
 
     void Start()
     {
+       // GameObject swordObject = GameObject.FindWithTag("Sword"); // 假设 Sword 有 "Sword" 标签
+        //if (swordObject != null)
+        //{
+        //    swordstate = swordObject.GetComponent<Sword>();
+        //}
         // Ensure the camera is assigned
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
         }
+
 
         // Cache initial player references
         player1 = GameObject.FindGameObjectWithTag(player1Tag);
@@ -83,7 +91,7 @@ public class DynamicCamera : MonoBehaviour
 
     void CenterCameraOnBothPlayers(Transform player1Transform, Transform player2Transform)
     {
-        Debug.Log("Following midpoint");
+        //Debug.Log("Following midpoint");
         // Calculate the midpoint between both players
         Vector3 midpoint = (player1Transform.position + player2Transform.position) / 2;
 
@@ -105,8 +113,9 @@ public class DynamicCamera : MonoBehaviour
     }
     private void FixedCamera()
     {
-        Debug.Log("Fixed Camera mode");
+        //Debug.Log("Fixed Camera mode");
         // Keep the camera fixed at the current position
+
         //mainCamera.transform.position = new Vector3(
         //    Mathf.Clamp(mainCamera.transform.position.x, fixedCameraBoundsMin.x, fixedCameraBoundsMax.x),
         //    Mathf.Clamp(mainCamera.transform.position.y, fixedCameraBoundsMin.y, fixedCameraBoundsMax.y),
@@ -114,15 +123,11 @@ public class DynamicCamera : MonoBehaviour
         //);
 
         // Prevent players from crossing the boundaries (air walls)
-        if (player1 != null)
-        {
-            //KeepPlayerInBounds(player1.transform);
-        }
+         if(deathnum == 1)
+         {
+             isFixedMode = false;
+         }
 
-        if (player2 != null)
-        {
-            //KeepPlayerInBounds(player2.transform);
-        }
 
 
     }
