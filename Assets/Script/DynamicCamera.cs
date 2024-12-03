@@ -104,6 +104,10 @@ public class DynamicCamera : MonoBehaviour
 
         // Update the offset for a new fixed state
         remainingPlayerOffset = mainCamera.transform.position - midpoint;
+        if (deathnum == 2)
+        {
+            isFixedMode = true;
+        }
     }
     void EnterFixedMode()
     {

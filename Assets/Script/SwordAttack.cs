@@ -37,11 +37,11 @@ public class SwordAttack : Sword
         float elapsedTime = 0f;
         float duration = 0.2f; // Attack duration
 
-        Vector3 targetPosition = HolderPosition + transform.right * 1.5f;
+        //Vector3 targetPosition = HolderPosition + transform.right * 1.5f;
 
         while (elapsedTime < duration)
         {
-            transform.localPosition = Vector3.Lerp(HolderPosition, targetPosition, elapsedTime / duration);
+            //transform.localPosition = Vector3.Lerp(HolderPosition, targetPosition, elapsedTime / duration);
             elapsedTime += Time.deltaTime;
             yield return null;
         }

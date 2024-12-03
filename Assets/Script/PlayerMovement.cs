@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public float dashForce = 10f;
     private Rigidbody2D rb;
-    private bool isGrounded;
+    public bool isGrounded;
     
     [SerializeField] private float speed;
     public float speedIncrease = 2f; // Additional speed after holding the key
@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     public LayerMask swordLayer;
 
     private bool isCrouching = false; 
-    private Sword currentSword; 
+    public Sword currentSword; 
     
     public Transform opponent;// Get opponent
     public string opponentTag;
@@ -198,7 +198,7 @@ public class PlayerMovement : MonoBehaviour
         jumpCounter = 0;
     }
 
-
+    
     void HandleCrouch()
     {
         // check if press down button
