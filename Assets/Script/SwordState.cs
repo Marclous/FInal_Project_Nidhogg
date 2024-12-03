@@ -336,6 +336,8 @@ public class Sword : MonoBehaviour
                 Debug.Log("Kill" + collision.gameObject.name);
                 camera.deathnum++;
                 Destroy(collision.gameObject);
+            }else {
+                currentState = SwordState.Dropped;
             }
         }
 
