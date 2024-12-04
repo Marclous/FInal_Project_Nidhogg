@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 9202082820291604578}
   - component: {fileID: 8003151279250230028}
   - component: {fileID: 7442923083254117315}
-  - component: {fileID: 6457094727078393540}
   - component: {fileID: 4501796543968794237}
+  - component: {fileID: 2731370372165514725}
   m_Layer: 3
   m_Name: SWORD1
   m_TagString: Untagged
@@ -132,24 +132,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &6457094727078393540
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7467299643324856824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 686567a4806eef541925e33977db7178, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentState: 1
-  padding: {x: 0, y: 0, z: 0}
-  HolderPosition: {x: 0, y: 0, z: 0}
-  throwSpeed: 10
-  holder: {fileID: 0}
-  thrustSpeed: 10
 --- !u!50 &4501796543968794237
 Rigidbody2D:
   serializedVersion: 4
@@ -176,4 +158,29 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 4
+  m_Constraints: 7
+--- !u!114 &2731370372165514725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7467299643324856824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c3190dde4378d54f9e74ece19f2035e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 1
+  holder: {fileID: 0}
+  padding: {x: 0, y: 0, z: 0}
+  PositionOffsets:
+  - {x: 0.5, y: 1, z: 0}
+  - {x: 0.5, y: 0.5, z: 0}
+  - {x: 0.5, y: 0, z: 0}
+  forceAmount: 10
+  throwSpeed: 10
+  aimOffset: {x: -1, y: 1, z: 0}
+  thrustDuration: 0.2
+  cam: {fileID: 0}
+  camera: {fileID: 0}

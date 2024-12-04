@@ -10,6 +10,7 @@ public class Sword : MonoBehaviour
     // 组件引用
     private Rigidbody2D rigidSword;
     private Collider2D swordCollider;
+    private Rigidbody2D rigidHolder;
 
     // 持有相关
     public GameObject holder; // 当前持有者
@@ -22,6 +23,9 @@ public class Sword : MonoBehaviour
     };
     private int positionIndex = 1; // 当前位置索引 (中)
     private Vector3 currentOffset; // 当前偏移量
+    public float forceAmount = 10f;
+    public float moveDistance = 1f; // Distance to move backward
+    public float moveSpeed = 5f;  // Speed of the movement
 
     // 投掷相关
     [SerializeField] private float throwSpeed = 10f;
@@ -43,6 +47,7 @@ public class Sword : MonoBehaviour
         camera = cam.GetComponent<DynamicCamera>();
         rigidSword = GetComponent<Rigidbody2D>();
         swordCollider = GetComponent<Collider2D>();
+        
         currentOffset = PositionOffsets[positionIndex];
     }
 
@@ -58,12 +63,9 @@ public class Sword : MonoBehaviour
                 break;
             case SwordState.Thrown:
                 HandleThrownState();
-
-                
-
-
                 break;
         }
+        
     }
 
     /// <summary>
@@ -74,13 +76,22 @@ public class Sword : MonoBehaviour
         if (holder == null) return;
 
         FollowHolder();
-
+        rigidHolder = holder.GetComponent<Rigidbody2D>();
         // 切换瞄准状态
-        if (Input.GetKeyDown(KeyCode.U) && holder.CompareTag("Player 1"))
+        if (Input.GetKeyDown(KeyCode.W) && holder.CompareTag("Player 1") && positionIndex == 0)
         {
             isAiming = true;
         }
-        else if (Input.GetKeyUp(KeyCode.U) && holder.CompareTag("Player 1"))
+        else if (Input.GetKeyUp(KeyCode.S) && holder.CompareTag("Player 1") && isAiming == true)
+        {
+            isAiming = false;
+            // 恢复剑的默认旋转
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+        }else if (Input.GetKeyDown(KeyCode.UpArrow) && holder.CompareTag("Player 2") && positionIndex == 0)
+        {
+            isAiming = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.DownArrow) && holder.CompareTag("Player 2") && isAiming == true)
         {
             isAiming = false;
             // 恢复剑的默认旋转
@@ -90,7 +101,11 @@ public class Sword : MonoBehaviour
         if (isAiming)
         {
             HandleAimingRotation();
-            if (Input.GetKeyDown(KeyCode.I) && holder.CompareTag("Player 1"))
+            if (Input.GetKeyDown(KeyCode.F) && holder.CompareTag("Player 1"))
+            {
+                Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0));
+                isAiming = false;
+            }else if (Input.GetKeyDown(KeyCode.M) && holder.CompareTag("Player 2"))
             {
                 Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0));
                 isAiming = false;
@@ -102,7 +117,10 @@ public class Sword : MonoBehaviour
         }
 
         // 攻击操作
-        if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1"))
+        if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming)
+        {
+            StartCoroutine(Thrust());
+        }else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming)
         {
             StartCoroutine(Thrust());
         }
@@ -154,13 +172,19 @@ public class Sword : MonoBehaviour
     /// </summary>
     private void HandlePositionAdjustment()
     {
-        if (Input.GetKeyDown(KeyCode.W) && positionIndex > 0)
+        if (Input.GetKeyDown(KeyCode.W) && positionIndex > 0 && holder.CompareTag("Player 1"))
         {
             positionIndex--;
         }
-        else if (Input.GetKeyDown(KeyCode.S) && positionIndex < PositionOffsets.Length - 1)
+        else if (Input.GetKeyDown(KeyCode.S) && positionIndex < PositionOffsets.Length - 1 && holder.CompareTag("Player 1"))
         {
             positionIndex++;
+        }else if (Input.GetKeyDown(KeyCode.DownArrow) && positionIndex < PositionOffsets.Length - 1 && holder.CompareTag("Player 2"))
+        {
+            positionIndex++;
+        }else if(Input.GetKeyDown(KeyCode.UpArrow) && positionIndex > 0 && holder.CompareTag("Player 2"))
+        {
+            positionIndex--;
         }
 
         currentOffset = PositionOffsets[positionIndex];
@@ -315,9 +339,17 @@ public class Sword : MonoBehaviour
             }
         }
     }
-
+    private IEnumerator MoveToPosition(Rigidbody2D rb, Vector2 targetPosition, float speed)
+    {
+        while ((targetPosition - rb.position).sqrMagnitude > 0.01f)
+        {
+            rb.MovePosition(Vector2.MoveTowards(rb.position, targetPosition, speed * Time.deltaTime));
+            yield return null;
+        }
+    }
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        Rigidbody2D otherRb = collision.rigidbody;
         if (currentState == SwordState.Thrown && collision.gameObject.CompareTag("Player 2"))
         {
             Destroy(collision.gameObject); // 击中敌人
@@ -327,6 +359,19 @@ public class Sword : MonoBehaviour
         else if (currentState == SwordState.Thrown && collision.gameObject.CompareTag("Ground"))
         {
             currentState = SwordState.Dropped;
+        }
+        if(currentState == SwordState.Held && collision.gameObject.CompareTag("sword")) 
+        {
+            Debug.Log("Collided with other sword");
+             float horizontalDirection = collision.transform.position.x - transform.position.x;
+
+            // Normalize to determine the direction (-1 for left, 1 for right)
+            float directionSign = Mathf.Sign(horizontalDirection);
+
+            // Calculate target positions for both objects
+            Vector2 thisTargetPosition = rigidHolder.position - new Vector2(directionSign * moveDistance, 0f);
+            // Apply horizontal forces to both objects
+            StartCoroutine(MoveToPosition(rigidHolder, thisTargetPosition, moveSpeed));
         }
         if (holder != null)
         {
