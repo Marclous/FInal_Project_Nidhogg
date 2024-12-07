@@ -34,6 +34,7 @@ public class Sword : MonoBehaviour
 
     // 动作相关
     private bool isAttacking = false;
+    private PlayerMovement holderScript;
     [SerializeField] private float thrustDuration = 0.2f;
 
 
@@ -77,6 +78,7 @@ public class Sword : MonoBehaviour
 
         FollowHolder();
         rigidHolder = holder.GetComponent<Rigidbody2D>();
+        holderScript = holder.GetComponent<PlayerMovement>();
         // 切换瞄准状态
         if (Input.GetKeyDown(KeyCode.W) && holder.CompareTag("Player 1") && positionIndex == 0)
         {
@@ -117,10 +119,10 @@ public class Sword : MonoBehaviour
         }
 
         // 攻击操作
-        if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming)
+        if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
         {
             StartCoroutine(Thrust());
-        }else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming)
+        }else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
         {
             StartCoroutine(Thrust());
         }

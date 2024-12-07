@@ -5,6 +5,12 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public float dashForce = 10f;
+    public float dashSpeed = 20f;
+    public float dashAngle = 30f; // Dash angle in degrees
+    private Vector2 dashDirection; // Direction of the dash
+    public float dashDuration = 0.2f; // Duration of the dash
+    private float dashStartTime; // When the dash started
+    private bool isDashing = false;
     private Rigidbody2D rb;
     public bool isGrounded;
     
@@ -75,6 +81,11 @@ public class PlayerMovement : MonoBehaviour
             Physics2D.IgnoreLayerCollision(6,6);
         }else if(!isRunning){
             Physics2D.IgnoreLayerCollision(6,6,false);
+        }
+
+        if (isDashing)
+        {
+            PerformDash();
         }
 
         Move();
@@ -161,15 +172,13 @@ public class PlayerMovement : MonoBehaviour
             Jump();
         }
 
-        // Dash input based on player tag
-        // if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
-        // {
-        //     Dash();
-        // }
-        // else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
-        // {
-        //     Dash();
-        // }
+        if (Input.GetKeyDown(KeyCode.F) && !isGrounded && !isDashing && playerTag == "Player 1")
+        {
+            StartDash();
+        }else if (Input.GetKeyDown(KeyCode.M) && !isGrounded && !isDashing && playerTag == "Player 2")
+        {
+            StartDash();
+        }
 
         if (rb.velocity.y > 0 && isJumping)
         {
@@ -234,9 +243,34 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-    void Dash()
+    private void StartDash()
     {
-        rb.AddForce(new Vector2(transform.localScale.x * dashForce, 0), ForceMode2D.Impulse);
+        isDashing = true;
+        dashStartTime = Time.time;
+
+        // Calculate dash direction
+        float horizontalDirection = Mathf.Sign(rb.velocity.x);
+        float angleInRadians = dashAngle * Mathf.Deg2Rad;
+        dashDirection = new Vector2(horizontalDirection * Mathf.Cos(angleInRadians), -Mathf.Sin(angleInRadians)).normalized;
+    }
+
+    private void PerformDash()
+    {
+        if (Time.time - dashStartTime <= dashDuration)
+        {
+            // Move the player using MovePosition
+            Vector2 newPosition = rb.position + dashDirection * dashSpeed * Time.fixedDeltaTime;
+            rb.MovePosition(newPosition);
+        }
+        else
+        {
+            EndDash();
+        }
+    }
+    private void EndDash()
+    {
+        isDashing = false;
+       
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -244,6 +278,12 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
+        }
+        if(isDashing == true && collision.gameObject.CompareTag("Player 1") && gameObject.CompareTag("Player 2")) {
+
+        }
+        if(isDashing == true && collision.gameObject.CompareTag("Player 2") && gameObject.CompareTag("Player 1")) {
+            
         }
     }
 
