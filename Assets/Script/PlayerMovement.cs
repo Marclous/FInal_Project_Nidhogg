@@ -43,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
     
     public Transform opponent;// Get opponent
     public string opponentTag;
-
+    public bool isDefending = false;
 
     void Start()
     {
@@ -100,13 +100,13 @@ public class PlayerMovement : MonoBehaviour
         float xposition = 0f;
 
         // Use different inputs based on the player's tag
-        if (playerTag == "Player 1")
+        if (playerTag == "Player 1" && isDefending == false)
         {
             xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
             
 
         }
-        else if (playerTag == "Player 2")
+        else if (playerTag == "Player 2" && isDefending == false)
         {
             xposition = Input.GetKey(KeyCode.LeftArrow) ? -1 : (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
             

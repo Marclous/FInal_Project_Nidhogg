@@ -152,6 +152,8 @@ MonoBehaviour:
   throwSpeed: 10
   aimOffset: {x: -1, y: 1, z: 0}
   thrustDuration: 0.2
+  frontAngle: 115
+  backAngle: -70
   cam: {fileID: 699497946}
   camera: {fileID: 0}
 --- !u!50 &221660002
@@ -179,7 +181,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &221660007
 BoxCollider2D:
@@ -1804,10 +1806,10 @@ PrefabInstance:
       addedObject: {fileID: 221660002}
     - targetCorrespondingSourceObject: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 221660001}
+      addedObject: {fileID: 221660007}
     - targetCorrespondingSourceObject: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 221660007}
+      addedObject: {fileID: 221660001}
   m_SourcePrefab: {fileID: 100100000, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
 --- !u!1 &1544023630
 GameObject:
@@ -1968,7 +1970,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!114 &1619422281
 MonoBehaviour:
@@ -1995,6 +1997,8 @@ MonoBehaviour:
   throwSpeed: 10
   aimOffset: {x: -1, y: 1, z: 0}
   thrustDuration: 0.2
+  frontAngle: 115
+  backAngle: -70
   cam: {fileID: 699497946}
   camera: {fileID: 0}
 --- !u!1 &1628278497

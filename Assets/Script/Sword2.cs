@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class Sword : MonoBehaviour
@@ -36,6 +37,9 @@ public class Sword : MonoBehaviour
     private bool isAttacking = false;
     private PlayerMovement holderScript;
     [SerializeField] private float thrustDuration = 0.2f;
+    private bool isDefending = false;
+    public float frontAngle = 115f;
+    public float backAngle = -70f;
 
 
     //xiangji
@@ -65,8 +69,8 @@ public class Sword : MonoBehaviour
             case SwordState.Thrown:
                 HandleThrownState();
                 break;
+            
         }
-        
     }
 
     /// <summary>
@@ -99,7 +103,18 @@ public class Sword : MonoBehaviour
             // 恢复剑的默认旋转
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }
+        
+         if (Input.GetKeyDown(KeyCode.V) && holder.CompareTag("Player 1") && isAiming == false)
+        {
+            StartDefending();
+            
+        }
 
+        if (isDefending)
+        {
+            HandleDefendingRotation();
+
+        }
         if (isAiming)
         {
             HandleAimingRotation();
@@ -128,6 +143,32 @@ public class Sword : MonoBehaviour
         }
     }
 
+    private void StartDefending() {
+        isDefending = true;
+        holderScript.isDefending = true;
+        StartCoroutine(ResetDefense());
+    }
+    private void HandleDefendingRotation()
+    {
+        float direction = Mathf.Sign(holder.transform.localScale.x);
+        
+        if(direction < 0) {
+            transform.rotation = Quaternion.Euler(0, 0, backAngle * direction);
+            aimOffset = new Vector3(-1f,1f, 0);
+            transform.position = holder.transform.position + aimOffset ;
+        }else if(direction > 0) {
+            transform.rotation = Quaternion.Euler(0, 0, frontAngle * direction);
+            aimOffset = new Vector3(1f,1f, 0);
+            transform.position = holder.transform.position + aimOffset ;
+        }
+    }
+    private IEnumerator ResetDefense()
+    {
+        yield return new WaitForSeconds(0.8f); // 等待指定时间
+        isDefending = false; // 设置为false
+        holderScript.isDefending = false;
+        transform.rotation = Quaternion.Euler(0, 0, 0);
+    }
     /// <summary>
     /// 处理掉落状态的逻辑
     /// </summary>
@@ -150,7 +191,8 @@ public class Sword : MonoBehaviour
         // 投掷过程中保持物理行为
         if (currentState == SwordState.Thrown)
         {
-            rigidSword.velocity = new Vector2(Mathf.Sign(holder.transform.localScale.x), 0) * throwSpeed;
+            float horizontalDirection = Mathf.Sign(rigidHolder.velocity.x);
+            rigidSword.velocity = new Vector2(horizontalDirection * Mathf.Sign(holder.transform.localScale.x), 0) * throwSpeed;
 
         }
     }
@@ -207,8 +249,17 @@ public class Sword : MonoBehaviour
     private void HandleAimingRotation()
     {
         float direction = Mathf.Sign(holder.transform.localScale.x);
-        transform.rotation = Quaternion.Euler(0, 0, -105f * direction);
-        transform.position = holder.transform.position + aimOffset * direction;
+        
+        if(direction < 0) {
+            transform.rotation = Quaternion.Euler(0, 0, 70f * direction);
+            aimOffset = new Vector3(1f,1f, 0);
+            transform.position = holder.transform.position + aimOffset ;
+        }else if(direction > 0) {
+            transform.rotation = Quaternion.Euler(0, 0, -105f * direction);
+            aimOffset = new Vector3(-1f,1f, 0);
+            transform.position = holder.transform.position + aimOffset ;
+        }
+        
     }
 
     /// <summary>
@@ -357,16 +408,21 @@ public class Sword : MonoBehaviour
             Destroy(collision.gameObject); // 击中敌人
             camera.deathnum++;
             currentState = SwordState.Dropped;
+        }else if(currentState == SwordState.Thrown && collision.gameObject.CompareTag("Player 1"))
+        {
+            Destroy(collision.gameObject); // 击中敌人
+            camera.deathnum++;
+            currentState = SwordState.Dropped;
         }
         else if (currentState == SwordState.Thrown && collision.gameObject.CompareTag("Ground"))
         {
             currentState = SwordState.Dropped;
         }
-        if(currentState == SwordState.Held && collision.gameObject.CompareTag("sword")) 
+        if(currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && !isDefending) 
         {
             Debug.Log("Collided with other sword");
-             float horizontalDirection = collision.transform.position.x - transform.position.x;
-
+            float horizontalDirection = collision.transform.position.x - transform.position.x;
+            Sword otherSword = collision.gameObject.GetComponent<Sword>();
             // Normalize to determine the direction (-1 for left, 1 for right)
             float directionSign = Mathf.Sign(horizontalDirection);
 
@@ -374,7 +430,16 @@ public class Sword : MonoBehaviour
             Vector2 thisTargetPosition = rigidHolder.position - new Vector2(directionSign * moveDistance, 0f);
             // Apply horizontal forces to both objects
             StartCoroutine(MoveToPosition(rigidHolder, thisTargetPosition, moveSpeed));
-        }
+        }else if(currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && isDefending) {
+            /*float horizontalDirection = collision.transform.position.x - transform.position.x;
+
+            // Normalize to determine the direction (-1 for left, 1 for right)
+            float directionSign = -Mathf.Sign(horizontalDirection);
+            Vector2 thisTargetPosition = rigidHolder.position - new Vector2(directionSign * moveDistance * 2, 0f);
+            // Apply horizontal forces to both objects
+            Sword otherSword = collision.gameObject.GetComponent<Sword>();
+            StartCoroutine(MoveToPosition(otherSword.rigidHolder, thisTargetPosition, moveSpeed));*/
+        } 
         if (holder != null)
         {
             if (!collision.gameObject.CompareTag(holder.tag) && collision.gameObject.layer == 6)
