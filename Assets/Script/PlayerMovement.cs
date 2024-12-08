@@ -280,6 +280,7 @@ public class PlayerMovement : MonoBehaviour
             isGrounded = true;
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 1") && gameObject.CompareTag("Player 2")) {
+            
 
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 2") && gameObject.CompareTag("Player 1")) {

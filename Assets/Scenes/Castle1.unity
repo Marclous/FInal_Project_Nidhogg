@@ -155,6 +155,7 @@ MonoBehaviour:
   thrustDuration: 0.2
   frontAngle: 115
   backAngle: -70
+  moved: 0
   cam: {fileID: 699497946}
   camera: {fileID: 0}
 --- !u!50 &221660002
@@ -1265,7 +1266,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_Name
-      value: SWORD2
+      value: RedSWORD2
       objectReference: {fileID: 0}
     - target: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_Layer
@@ -1725,7 +1726,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_Name
-      value: SWORD2 (1)
+      value: GreenSWORD2 (1)
       objectReference: {fileID: 0}
     - target: {fileID: 7467299643324856824, guid: b4b6f9a0708000346b152184f8298e68, type: 3}
       propertyPath: m_Layer
@@ -2001,6 +2002,7 @@ MonoBehaviour:
   thrustDuration: 0.2
   frontAngle: 115
   backAngle: -70
+  moved: 0
   cam: {fileID: 699497946}
   camera: {fileID: 0}
 --- !u!1 &1628278497
