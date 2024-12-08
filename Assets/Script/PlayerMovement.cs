@@ -281,9 +281,18 @@ public class PlayerMovement : MonoBehaviour
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 1") && gameObject.CompareTag("Player 2")) {
             
+            Sword otherSword = collision.gameObject.GetComponent<PlayerMovement>().currentSword.GetComponent<Sword>();
+            if(otherSword != null) {
+                otherSword.DetachSelfSword();
+            }
 
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 2") && gameObject.CompareTag("Player 1")) {
+            Debug.Log("Drop sword");
+            Sword otherSword = collision.gameObject.GetComponent<PlayerMovement>().currentSword.GetComponent<Sword>();
+            if(otherSword != null) {
+                otherSword.DetachSelfSword();
+            }
             
         }
     }

@@ -598,7 +598,7 @@ public class Sword : MonoBehaviour
     }
 
 
-    private void DetachOtherSword(Sword otherSword)
+    public void DetachOtherSword(Sword otherSword)
     {
         if (otherSword.holder != null)
         {
@@ -621,6 +621,32 @@ public class Sword : MonoBehaviour
         // 确保剑恢复物理行为
         otherSword.rigidSword.isKinematic = false;
         otherSword.rigidSword.constraints = RigidbodyConstraints2D.None;
+
+    }
+
+    public void DetachSelfSword()
+    {
+        if (holder != null)
+        {
+            //otherSword.previousHolder = holder;
+            // 获取持有者的 PlayerMovement 脚本
+            PlayerMovement otherHolderScript = holder.GetComponent<PlayerMovement>();
+
+            if (otherHolderScript != null)
+            {
+                // 清除持有者对剑的引用
+                otherHolderScript.currentSword = null;
+            }
+
+            // 清除剑对持有者的引用
+            holder = null;
+        }
+
+        // 更新剑的状态为 Dropped
+        currentState = SwordState.Dropped;
+        // 确保剑恢复物理行为
+        rigidSword.isKinematic = false;
+        rigidSword.constraints = RigidbodyConstraints2D.None;
 
     }
 
