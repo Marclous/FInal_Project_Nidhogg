@@ -5,8 +5,14 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public float dashForce = 10f;
+    public float dashSpeed = 20f;
+    public float dashAngle = 30f; // Dash angle in degrees
+    private Vector2 dashDirection; // Direction of the dash
+    public float dashDuration = 0.2f; // Duration of the dash
+    private float dashStartTime; // When the dash started
+    private bool isDashing = false;
     private Rigidbody2D rb;
-    private bool isGrounded;
+    public bool isGrounded;
     
     [SerializeField] private float speed;
     public float speedIncrease = 2f; // Additional speed after holding the key
@@ -33,11 +39,11 @@ public class PlayerMovement : MonoBehaviour
     public LayerMask swordLayer;
 
     private bool isCrouching = false; 
-    private Sword currentSword; 
+    public Sword currentSword; 
     
     public Transform opponent;// Get opponent
     public string opponentTag;
-
+    public bool isDefending = false;
 
     void Start()
     {
@@ -77,6 +83,11 @@ public class PlayerMovement : MonoBehaviour
             Physics2D.IgnoreLayerCollision(6,6,false);
         }
 
+        if (isDashing)
+        {
+            PerformDash();
+        }
+
         Move();
         HandleJumpAndDash();
         HandleCrouch();
@@ -89,13 +100,13 @@ public class PlayerMovement : MonoBehaviour
         float xposition = 0f;
 
         // Use different inputs based on the player's tag
-        if (playerTag == "Player 1")
+        if (playerTag == "Player 1" && isDefending == false)
         {
             xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
             
 
         }
-        else if (playerTag == "Player 2")
+        else if (playerTag == "Player 2" && isDefending == false)
         {
             xposition = Input.GetKey(KeyCode.LeftArrow) ? -1 : (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
             
@@ -161,15 +172,13 @@ public class PlayerMovement : MonoBehaviour
             Jump();
         }
 
-        // Dash input based on player tag
-        // if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.LeftShift))
-        // {
-        //     Dash();
-        // }
-        // else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.RightShift))
-        // {
-        //     Dash();
-        // }
+        if (Input.GetKeyDown(KeyCode.F) && !isGrounded && !isDashing && playerTag == "Player 1")
+        {
+            StartDash();
+        }else if (Input.GetKeyDown(KeyCode.M) && !isGrounded && !isDashing && playerTag == "Player 2")
+        {
+            StartDash();
+        }
 
         if (rb.velocity.y > 0 && isJumping)
         {
@@ -198,7 +207,7 @@ public class PlayerMovement : MonoBehaviour
         jumpCounter = 0;
     }
 
-
+    
     void HandleCrouch()
     {
         // check if press down button
@@ -234,9 +243,34 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-    void Dash()
+    private void StartDash()
     {
-        rb.AddForce(new Vector2(transform.localScale.x * dashForce, 0), ForceMode2D.Impulse);
+        isDashing = true;
+        dashStartTime = Time.time;
+
+        // Calculate dash direction
+        float horizontalDirection = Mathf.Sign(rb.velocity.x);
+        float angleInRadians = dashAngle * Mathf.Deg2Rad;
+        dashDirection = new Vector2(horizontalDirection * Mathf.Cos(angleInRadians), -Mathf.Sin(angleInRadians)).normalized;
+    }
+
+    private void PerformDash()
+    {
+        if (Time.time - dashStartTime <= dashDuration)
+        {
+            // Move the player using MovePosition
+            Vector2 newPosition = rb.position + dashDirection * dashSpeed * Time.fixedDeltaTime;
+            rb.MovePosition(newPosition);
+        }
+        else
+        {
+            EndDash();
+        }
+    }
+    private void EndDash()
+    {
+        isDashing = false;
+       
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -244,6 +278,12 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
+        }
+        if(isDashing == true && collision.gameObject.CompareTag("Player 1") && gameObject.CompareTag("Player 2")) {
+
+        }
+        if(isDashing == true && collision.gameObject.CompareTag("Player 2") && gameObject.CompareTag("Player 1")) {
+            
         }
     }
 

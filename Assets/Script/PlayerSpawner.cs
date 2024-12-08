@@ -10,6 +10,13 @@ public class PlayerSpawner : MonoBehaviour
 
     public bool isRespawning = false;
     public Sword swordstate;
+
+    public Camera cam;
+    public new DynamicCamera camera;
+    private void Start()
+    {
+        camera = cam.GetComponent<DynamicCamera>();
+    }
     void Update()
     {
         swordstate = GetComponent<Sword>();
@@ -37,7 +44,7 @@ public class PlayerSpawner : MonoBehaviour
         if (playerPrefab != null)
         {
             Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
-            //swordstate.death_num--;
+            camera.deathnum--;
         }
 
         isRespawning = false; // Reset respawning flag

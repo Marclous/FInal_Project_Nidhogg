@@ -20,7 +20,7 @@ public class DynamicCamera : MonoBehaviour
 
     private bool isFixedMode = true; // Starts in Fixed Camera mode
     //public Sword swordstate;
-    public int deathnum;
+    public int deathnum = 2;
 
     void Start()
     {
@@ -104,6 +104,10 @@ public class DynamicCamera : MonoBehaviour
 
         // Update the offset for a new fixed state
         remainingPlayerOffset = mainCamera.transform.position - midpoint;
+        if (deathnum == 2)
+        {
+            isFixedMode = true;
+        }
     }
     void EnterFixedMode()
     {

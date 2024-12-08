@@ -159,7 +159,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!114 &5550423885837042698
 MonoBehaviour:
@@ -174,6 +174,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dashForce: 10
+  isGrounded: 0
   speed: 2
   speedIncrease: 6
   holdTime: 0.4
@@ -188,6 +189,7 @@ MonoBehaviour:
   swordLayer:
     serializedVersion: 2
     m_Bits: 8
+  currentSword: {fileID: 0}
   opponent: {fileID: 1261609355579162999, guid: d0a6ab1e9c30cd146ba3d0f8d7307192, type: 3}
   opponentTag: 
 --- !u!1 &2501092934063027503
