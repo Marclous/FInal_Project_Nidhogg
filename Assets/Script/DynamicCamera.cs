@@ -20,7 +20,7 @@ public class DynamicCamera : MonoBehaviour
 
     private bool isFixedMode = true; // Starts in Fixed Camera mode
     //public Sword swordstate;
-    public int deathnum;
+    public int deathnum = 2;
 
     void Start()
     {

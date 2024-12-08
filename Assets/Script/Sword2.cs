@@ -32,6 +32,7 @@ public class Sword : MonoBehaviour
     [SerializeField] private float throwSpeed = 10f;
     private bool isAiming = false;
     public Vector3 aimOffset = new Vector3(-1f, 1f, 0);
+    public GameObject previousHolder; // Save the current holder
 
     // 动作相关
     private bool isAttacking = false;
@@ -78,7 +79,12 @@ public class Sword : MonoBehaviour
     /// </summary>
     private void HandleHeldState()
     {
-        if (holder == null) return;
+        if (holder == null) 
+        {
+            currentState = SwordState.Dropped;
+            return;
+        }
+        
 
         FollowHolder();
         rigidHolder = holder.GetComponent<Rigidbody2D>();
@@ -131,16 +137,18 @@ public class Sword : MonoBehaviour
         else
         {
             HandlePositionAdjustment();
+            // 攻击操作
+            if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
+            {
+                StartCoroutine(Thrust());
+            }
+            else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
+            {
+                StartCoroutine(Thrust());
+            }
         }
 
-        // 攻击操作
-        if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
-        {
-            StartCoroutine(Thrust());
-        }else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
-        {
-            StartCoroutine(Thrust());
-        }
+        
     }
 
     private void StartDefending() {
@@ -191,8 +199,9 @@ public class Sword : MonoBehaviour
         // 投掷过程中保持物理行为
         if (currentState == SwordState.Thrown)
         {
-            float horizontalDirection = Mathf.Sign(rigidHolder.velocity.x);
-            rigidSword.velocity = new Vector2(horizontalDirection * Mathf.Sign(holder.transform.localScale.x), 0) * throwSpeed;
+            Rigidbody2D previousRb = previousHolder.GetComponent<Rigidbody2D>();
+            float horizontalDirection = Mathf.Sign(previousRb.velocity.x);
+            rigidSword.velocity = new Vector2(horizontalDirection * Mathf.Sign(previousHolder.transform.localScale.x), 0) * throwSpeed;
 
         }
     }
@@ -317,11 +326,12 @@ public class Sword : MonoBehaviour
     /// </summary>
     private void Throw(Vector2 direction)
     {
+        previousHolder = holder; // Save the current holder
         currentState = SwordState.Thrown;
         // 清除玩家的 currentSword
         PlayerMovement playerMovement = holder.GetComponent<PlayerMovement>();
         playerMovement.currentSword = null; // 清除当前剑引用
-        GameObject previousHolder = holder; // Save the current holder
+        
         holder = null;
 
         rigidSword.gravityScale = 0f; // 禁用重力
@@ -340,14 +350,14 @@ public class Sword : MonoBehaviour
         Collider2D[] allColliders = FindObjectsOfType<Collider2D>();
         foreach (var collider in allColliders)
         {
-            if (collider.CompareTag("sword") || collider.CompareTag("Player 2"))
+            if (collider.CompareTag("sword"))
             {
                 Physics2D.IgnoreCollision(swordCollider, collider, false);
             }
         }
         if (currentState == SwordState.Thrown && rigidSword.velocity.magnitude <= 0)
         {
-            Vector2 padding = new Vector2(1,1);
+            Vector2 padding = new Vector2(0,1);
             rigidSword.velocity = ( padding  ) * throwSpeed;
             Debug.Log("Correcting sword velocity to maintain throwing motion.");
         }
@@ -403,22 +413,36 @@ public class Sword : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Rigidbody2D otherRb = collision.rigidbody;
-        if (currentState == SwordState.Thrown && collision.gameObject.CompareTag("Player 2"))
+
+
+        if (currentState == SwordState.Thrown)
         {
-            Destroy(collision.gameObject); // 击中敌人
-            camera.deathnum++;
-            currentState = SwordState.Dropped;
-        }else if(currentState == SwordState.Thrown && collision.gameObject.CompareTag("Player 1"))
-        {
-            Destroy(collision.gameObject); // 击中敌人
-            camera.deathnum++;
-            currentState = SwordState.Dropped;
+            // 检查是否是当前投掷者
+            if (previousHolder != null && collision.gameObject == previousHolder)
+            {
+                Debug.Log("Ignored collision with previous holder.");
+                return; // 忽略与投掷者的碰撞
+            }
+
+            // 击中敌人
+            if (collision.gameObject.CompareTag("Player 1") || collision.gameObject.CompareTag("Player 2"))
+            {
+                Debug.Log("Sword hit player: " + collision.gameObject.name);
+                Destroy(collision.gameObject);
+                camera.deathnum++;
+                currentState = SwordState.Dropped;
+            }
+
+            // 击中地面
+            if (collision.gameObject.CompareTag("Ground"))
+            {
+                Debug.Log("Sword hit the ground.");
+                currentState = SwordState.Dropped;
+            }
         }
-        else if (currentState == SwordState.Thrown && collision.gameObject.CompareTag("Ground"))
-        {
-            currentState = SwordState.Dropped;
-        }
-        if(currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && !isDefending) 
+
+
+        if (currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && !isDefending) 
         {
             Debug.Log("Collided with other sword");
             float horizontalDirection = collision.transform.position.x - transform.position.x;

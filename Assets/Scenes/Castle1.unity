@@ -151,6 +151,7 @@ MonoBehaviour:
   moveSpeed: 50
   throwSpeed: 10
   aimOffset: {x: -1, y: 1, z: 0}
+  previousHolder: {fileID: 0}
   thrustDuration: 0.2
   frontAngle: 115
   backAngle: -70
@@ -863,7 +864,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 2469390966789420158, guid: ae3f0f7a826ea1f4eba6457c44171380, type: 3}
   spawnOffset: {x: 0, y: 0, z: 0}
   respawnCooldown: 5
-  deathnum: 0
+  deathnum: 2
 --- !u!1 &726987817
 GameObject:
   m_ObjectHideFlags: 0
@@ -1996,6 +1997,7 @@ MonoBehaviour:
   moveSpeed: 50
   throwSpeed: 10
   aimOffset: {x: -1, y: 1, z: 0}
+  previousHolder: {fileID: 0}
   thrustDuration: 0.2
   frontAngle: 115
   backAngle: -70
