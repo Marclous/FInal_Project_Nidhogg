@@ -1,6 +1,8 @@
 ﻿using UnityEditor;
 using UnityEditor.UI;
 using UnityEngine;
+using System;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -13,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isDashing = false;
     private Rigidbody2D rb;
     public bool isGrounded;
+    public bool allowMove = true;
     
     [SerializeField] private float speed;
     public float speedIncrease = 2f; // Additional speed after holding the key
@@ -26,6 +29,7 @@ public class PlayerMovement : MonoBehaviour
     public float fallMultiplier;
     public float jumpTime;
     public float jumpMultiplier;
+
 
     Vector2 vecGravity;
     bool isJumping;
@@ -75,7 +79,9 @@ public class PlayerMovement : MonoBehaviour
         }
 
        }
-
+        if(Input.GetKey(KeyCode.Q) && playerTag == "Player 1") {
+            StartParalyze();
+        }
 
         if(isRunning) {
             Physics2D.IgnoreLayerCollision(6,6);
@@ -100,13 +106,13 @@ public class PlayerMovement : MonoBehaviour
         float xposition = 0f;
 
         // Use different inputs based on the player's tag
-        if (playerTag == "Player 1" && isDefending == false)
+        if (playerTag == "Player 1" && isDefending == false && allowMove == true)
         {
             xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
             
 
         }
-        else if (playerTag == "Player 2" && isDefending == false)
+        else if (playerTag == "Player 2" && isDefending == false && allowMove == true)
         {
             xposition = Input.GetKey(KeyCode.LeftArrow) ? -1 : (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
             
@@ -156,6 +162,18 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
+    }
+    private void StartParalyze() {
+        Debug.Log("Not Moving");
+        allowMove = false;
+        
+
+        StartCoroutine(StopParalyze());
+    }
+    private IEnumerator StopParalyze()
+    {
+        yield return new WaitForSeconds(0.8f); // 等待指定时间
+        allowMove = true;
     }
 
     void HandleJumpAndDash()
@@ -289,7 +307,10 @@ public class PlayerMovement : MonoBehaviour
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 2") && gameObject.CompareTag("Player 1")) {
             Debug.Log("Drop sword");
+            collision.gameObject.GetComponent<PlayerMovement>().StartParalyze();
             Sword otherSword = collision.gameObject.GetComponent<PlayerMovement>().currentSword.GetComponent<Sword>();
+            
+            
             if(otherSword != null) {
                 otherSword.DetachSelfSword();
             }
