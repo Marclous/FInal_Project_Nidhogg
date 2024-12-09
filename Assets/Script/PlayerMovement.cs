@@ -30,7 +30,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpTime;
     public float jumpMultiplier;
 
-
+    public Animator animator;
     Vector2 vecGravity;
     bool isJumping;
     float jumpCounter;
@@ -41,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform crouchCheckPoint; 
     public float crouchCheckRadius = 0.5f; 
     public LayerMask swordLayer;
+    private new CapsuleCollider2D collider2D;
 
     private bool isCrouching = false; 
     public Sword currentSword; 
@@ -53,13 +54,26 @@ public class PlayerMovement : MonoBehaviour
     {
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
         rb = GetComponent<Rigidbody2D>();
+        collider2D = GetComponent<CapsuleCollider2D>();
 
-        // Retrieve the tag of the player to distinguish controls
+        // Retrieve the tag of the player to distinguish control
         playerTag = gameObject.tag;
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
+        if(currentSword != null) {
+            animator.SetBool("hasSword", true);
+            animator.SetInteger("SwordPos", currentSword.positionIndex);
+        }else{
+            animator.SetBool("hasSword", false);
+        }
+        if(currentSword != null) {
+            
+        }
+        
+
        if(playerTag != null){
        if(playerTag == "Player 1"){
             opponentTag =  "Player 2";
@@ -97,7 +111,7 @@ public class PlayerMovement : MonoBehaviour
         Move();
         HandleJumpAndDash();
         HandleCrouch();
-        TryPickUpSword();
+        //TryPickUpSword();
 
     }
 
@@ -127,6 +141,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 currentSpeed = speed + speedIncrease;
                 isRunning = true;
+                animator.SetBool("isRunning", isRunning);
 
             }
 
@@ -144,6 +159,7 @@ public class PlayerMovement : MonoBehaviour
         {
             isMoving = false;
             isRunning = false;
+            animator.SetBool("isRunning", isRunning);
             holdTimer = 0f;
             currentSpeed = speed; // Reset to base speed
 
@@ -162,6 +178,8 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
+        animator.SetFloat("xVelocity", Math.Abs(rb.velocity.x));
+        animator.SetFloat("yVelocity", rb.velocity.y);
     }
     public void StartParalyze() {
         Debug.Log(playerTag + " Not Moving");
@@ -182,12 +200,14 @@ public class PlayerMovement : MonoBehaviour
         if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.G) && isGrounded)
         {
             Debug.Log("Jump Sucess");
+            
             Jump();
             
         }
         else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.N) && isGrounded)
         {
             Jump();
+            //animator.SetBool("isJumping", !isGrounded);
         }
 
         if (Input.GetKeyDown(KeyCode.F) && !isGrounded && !isDashing && playerTag == "Player 1")
@@ -201,8 +221,10 @@ public class PlayerMovement : MonoBehaviour
         if (rb.velocity.y > 0 && isJumping)
         {
             jumpCounter += Time.deltaTime;
-            if (jumpCounter > jumpTime) isJumping = false;
-
+            if (jumpCounter > jumpTime) {
+                isJumping = false;
+                
+            }
             rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
         }
 
@@ -222,6 +244,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         isJumping = true;
+        animator.SetBool("isJumping", isJumping);
         jumpCounter = 0;
     }
 
@@ -233,8 +256,9 @@ public class PlayerMovement : MonoBehaviour
             (playerTag == "Player 2" && Input.GetKey(KeyCode.DownArrow)))
         {
             isCrouching = true;
-            
-
+            animator.SetBool("isCrouching", true);
+            collider2D.size = new Vector2(0.25f, 0.4f);
+            collider2D.offset = new Vector2(0f, -0.06f);
             // Check if there is sword on the ground
             Collider2D swordCollider = Physics2D.OverlapCircle(crouchCheckPoint.position, crouchCheckRadius, swordLayer);
             if (swordCollider != null && swordCollider != this)
@@ -251,6 +275,9 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             isCrouching = false;
+            animator.SetBool("isCrouching", false);
+            collider2D.size = new Vector2(0.25f, 0.55f);
+            collider2D.offset = new Vector2(0f, 0f);
         }
     }
     void PickUpSword(Sword sword)
@@ -330,6 +357,7 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
+            animator.SetBool("isJumping", !isGrounded);
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 1") && gameObject.CompareTag("Player 2")) {
             

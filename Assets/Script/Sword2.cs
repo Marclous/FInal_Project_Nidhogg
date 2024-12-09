@@ -24,7 +24,7 @@ public class Sword : MonoBehaviour
         new Vector3(0.5f, 0.5f, 0), // 中
         new Vector3(0.5f, 0f, 0) // 低
     };
-    private int positionIndex = 1; // 当前位置索引 (中)
+    public int positionIndex = 1; // 当前位置索引 (中)
     private Vector3 currentOffset; // 当前偏移量
     public float forceAmount = 10f;
     public float moveDistance = 1f; // Distance to move backward
@@ -34,6 +34,7 @@ public class Sword : MonoBehaviour
     [SerializeField] private float throwSpeed = 10f;
     private bool isAiming = false;
     public Vector3 aimOffset = new Vector3(-1f, 1f, 0);
+    public float aimX = -1f;
     public GameObject previousHolder; // Save the current holder
 
     // 动作相关
@@ -41,12 +42,14 @@ public class Sword : MonoBehaviour
     private PlayerMovement holderScript;
     [SerializeField] private float thrustDuration = 0.2f;
     private bool isDefending = false;
-    public float frontAngle = 115f;
-    public float backAngle = -70f;
+    public float frontAngle = 90f;
+    public float backAngle = -90f;
     public bool moved;//玩家是否上下调整了剑的位置
     private Coroutine resetMovedCoroutine; // 用于跟踪当前重置协程
     private SpriteRenderer spriteRenderer;
 
+    public Vector3 Defenseoffset1;
+    public Vector3 Defenseoffset2;
     //xiangji
 
     public Camera cam;
@@ -114,24 +117,33 @@ public class Sword : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W) && holder.CompareTag("Player 1") && positionIndex == 0)
         {
             isAiming = true;
+            holderScript.animator.SetBool("isAiming", true);
         }
         else if (Input.GetKeyUp(KeyCode.S) && holder.CompareTag("Player 1") && isAiming == true)
         {
             isAiming = false;
+            holderScript.animator.SetBool("isAiming", false);
             // 恢复剑的默认旋转
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }else if (Input.GetKeyDown(KeyCode.UpArrow) && holder.CompareTag("Player 2") && positionIndex == 0)
         {
             isAiming = true;
+            holderScript.animator.SetBool("isAiming", true);
         }
         else if (Input.GetKeyUp(KeyCode.DownArrow) && holder.CompareTag("Player 2") && isAiming == true)
         {
             isAiming = false;
+            holderScript.animator.SetBool("isAiming", false);
             // 恢复剑的默认旋转
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }
         
-         if (Input.GetKeyDown(KeyCode.V) && holder.CompareTag("Player 1") && isAiming == false)
+         if (Input.GetKeyDown(KeyCode.H) && holder.CompareTag("Player 1") && isAiming == false)
+        {
+            StartDefending();
+            
+        }
+        if (Input.GetKeyDown(KeyCode.Comma) && holder.CompareTag("Player 2") && isAiming == false)
         {
             StartDefending();
             
@@ -147,10 +159,12 @@ public class Sword : MonoBehaviour
             HandleAimingRotation();
             if (Input.GetKeyDown(KeyCode.F) && holder.CompareTag("Player 1"))
             {
+                holderScript.animator.SetBool("isAiming", false);
                 Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0));
                 isAiming = false;
             }else if (Input.GetKeyDown(KeyCode.M) && holder.CompareTag("Player 2"))
             {
+                holderScript.animator.SetBool("isAiming", false);
                 Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0));
                 isAiming = false;
             }
@@ -159,18 +173,33 @@ public class Sword : MonoBehaviour
         {
             HandlePositionAdjustment();
             // 攻击操作
-            if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
+            if (Input.GetKeyDown(KeyCode.F) && isAttacking == false && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
             {
                 Debug.Log(this.name + "戳了");
+                isAttacking = true;
+                holderScript.animator.SetBool("isAttacking", true);
                 StartCoroutine(Thrust());
+                StartCoroutine(ThrustCD());
+
             }
-            else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
+            else if (Input.GetKeyDown(KeyCode.M) && isAttacking == false && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
             {
                 Debug.Log(this.name + "戳了");
+                isAttacking = true;
+                holderScript.animator.SetBool("isAttacking", true);
                 StartCoroutine(Thrust());
+                StartCoroutine(ThrustCD());
             }
         }
 
+        
+    }
+
+    private IEnumerator ThrustCD()
+    {
+        yield return new WaitForSeconds(0.3f); // 等待指定时间
+        isAttacking = false;
+        holderScript.animator.SetBool("isAttacking", false);
         
     }
 
@@ -192,13 +221,13 @@ public class Sword : MonoBehaviour
         
         if(direction < 0) {
             transform.rotation = Quaternion.Euler(0, 0, backAngle * direction);
-            aimOffset = new Vector3(-1f,1f, 0);
-            rigidSword.MovePosition(holder.transform.position + aimOffset);
+            
+            rigidSword.MovePosition(holder.transform.position + Defenseoffset1);
             //transform.position = holder.transform.position + aimOffset ;
         }else if(direction > 0) {
             transform.rotation = Quaternion.Euler(0, 0, frontAngle * direction);
-            aimOffset = new Vector3(1f,1f, 0);
-            rigidSword.MovePosition(holder.transform.position + aimOffset);
+            
+            rigidSword.MovePosition(holder.transform.position + Defenseoffset2);
             //transform.position = holder.transform.position + aimOffset ;
         }
     }
@@ -259,12 +288,12 @@ public class Sword : MonoBehaviour
         if (direction == 1 && isAiming == false)
         {
             spriteRenderer.flipX = false;
-            Debug.Log(direction);
+            //Debug.Log(direction);
         }
         else if (direction == -1) 
         {
             spriteRenderer.flipX = true;
-            Debug.Log(direction);
+            //Debug.Log(direction);
         }
         
         
@@ -385,13 +414,13 @@ public class Sword : MonoBehaviour
         
         if(direction < 0) {
             transform.rotation = Quaternion.Euler(0, 0, 70f * direction);
-            aimOffset = new Vector3(1f,1f, 0);
+            aimOffset.x = aimX;
             
             rigidSword.MovePosition(holder.transform.position + aimOffset);
             //transform.position = holder.transform.position + aimOffset ;
         }else if(direction > 0) {
             transform.rotation = Quaternion.Euler(0, 0, -105f * direction);
-            aimOffset = new Vector3(-1f,1f, 0); 
+            aimOffset.x = -aimX;
             spriteRenderer.flipX = true;
             rigidSword.MovePosition(holder.transform.position + aimOffset);
             //transform.position = holder.transform.position + aimOffset ;
@@ -405,20 +434,21 @@ public class Sword : MonoBehaviour
     private IEnumerator Thrust()
     {
         float elapsedTime = 0f;
-        float duration = 0.2f; // Attack duration
+        float duration = 0.3f; // Attack duration
 
-        Vector3 targetPosition = transform.localPosition + new Vector3(holder.transform.localScale.x * 1.5f, 0, 0);
-
+        Vector3 targetPosition = transform.localPosition + new Vector3(holder.transform.localScale.x * 0.2f, 0, 0);
+       
         while (elapsedTime < duration)
         {
             rigidSword.MovePosition(targetPosition);
             //transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, elapsedTime / duration);
             elapsedTime += Time.deltaTime;
+            
             yield return null;
         }
 
 
-        isAttacking = false;
+        
     }
     public void PickUp(GameObject newHolder)
     {
@@ -582,7 +612,7 @@ public class Sword : MonoBehaviour
                     DetachOtherSword(otherSword); // 调用解绑逻辑
                     moved = false;
                 }
-                else if (yDifference < -0.1f) // 当前剑在下方并向上调整
+                else if (yDifference < 0f) // 当前剑在下方并向上调整
                 {
 
                     Debug.Log("Knocked the other sword from below!");

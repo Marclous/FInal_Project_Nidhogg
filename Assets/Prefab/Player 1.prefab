@@ -176,7 +176,7 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 0.31, y: 0.55}
+  m_Size: {x: 0.25, y: 0.55}
   m_Direction: 0
 --- !u!50 &2097402139161659741
 Rigidbody2D:
@@ -231,6 +231,7 @@ MonoBehaviour:
   fallMultiplier: 8
   jumpTime: 0.2
   jumpMultiplier: 2.5
+  animator: {fileID: 0}
   playerTag: 
   crouchCheckPoint: {fileID: 2602105773549350593}
   crouchCheckRadius: 0.5
@@ -259,6 +260,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   attackRange: 0.39
+  anim: {fileID: 0}
 --- !u!1 &2754464864485351145
 GameObject:
   m_ObjectHideFlags: 0
