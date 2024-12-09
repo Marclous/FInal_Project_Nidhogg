@@ -31,18 +31,23 @@ public class PlayerAttack : MonoBehaviour
                 Debug.Log(playerMovement.playerTag + " is punching");
                 anim.SetBool("isPunching", true);
                 StartCoroutine(PunchCD());
-                Collider2D enemyPlayer = Physics2D.OverlapCircle(attackPos.position, attackRange, whatIsEnemies);
-                PlayerMovement enemy = enemyPlayer.GetComponent<PlayerMovement>();
-                if (enemy.allowMove == false)
-                {
-                    Debug.Log("Kill"+enemy.tag);
-                    Destroy(enemyPlayer.gameObject);
-                }
-                else
-                {
-                    enemyPlayer.GetComponent<PlayerMovement>().StartParalyze();
-                }
                 
+                Collider2D enemyPlayer = Physics2D.OverlapCircle(attackPos.position, attackRange, whatIsEnemies);
+                if (enemyPlayer != null)
+                {
+                    PlayerMovement enemy = enemyPlayer.GetComponent<PlayerMovement>();
+
+
+                    if (enemy.allowMove == false)
+                    {
+                        Debug.Log("Kill" + enemy.tag);
+                        Destroy(enemyPlayer.gameObject);
+                    }
+                    else
+                    {
+                        enemyPlayer.GetComponent<PlayerMovement>().StartParalyze();
+                    }
+                }
             }
             timeBtwAttack = startTimeBtwAttack;
         }

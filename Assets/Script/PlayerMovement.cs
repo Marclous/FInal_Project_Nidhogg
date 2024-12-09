@@ -60,6 +60,7 @@ public class PlayerMovement : MonoBehaviour
         // Retrieve the tag of the player to distinguish control
         playerTag = gameObject.tag;
         animator = GetComponent<Animator>();
+        
     }
 
     void Update()
@@ -276,26 +277,50 @@ public class PlayerMovement : MonoBehaviour
     
     void HandleCrouch()
     {
+        if (currentSword)
+        {
+            
+        }
+        
         // check if press down button
-        if ((playerTag == "Player 1" && Input.GetKey(KeyCode.S)) ||
+        if ((playerTag == "Player 1" && Input.GetKey(KeyCode.S))||
             (playerTag == "Player 2" && Input.GetKey(KeyCode.DownArrow)))
         {
-            isCrouching = true;
-            animator.SetBool("isCrouching", true);
-            collider2D.size = new Vector2(0.25f, 0.4f);
-            collider2D.offset = new Vector2(0f, -0.06f);
-            // Check if there is sword on the ground
-            Collider2D swordCollider = Physics2D.OverlapCircle(crouchCheckPoint.position, crouchCheckRadius, swordLayer);
-            if (swordCollider != null && swordCollider != this)
+            if (currentSword == null)
             {
-                Debug.Log("yes");
-                Sword sword = swordCollider.GetComponent<Sword>();
-                if (sword != null && currentSword == null) // Check sword and owner status
+                isCrouching = true;
+                animator.SetBool("isCrouching", true);
+                collider2D.size = new Vector2(0.25f, 0.4f);
+                collider2D.offset = new Vector2(0f, -0.06f);
+                // Check if there is sword on the ground
+                Collider2D swordCollider = Physics2D.OverlapCircle(crouchCheckPoint.position, crouchCheckRadius, swordLayer);
+                if (swordCollider != null && swordCollider != this)
                 {
-                    Debug.Log("ready to pick up");
-                    PickUpSword(sword);
+                    Debug.Log("yes");
+                    Sword sword = swordCollider.GetComponent<Sword>();
+                    if (sword != null && currentSword == null) // Check sword and owner status
+                    {
+                        Debug.Log("ready to pick up");
+                        PickUpSword(sword);
+                    }
                 }
             }
+            else if (currentSword != null) 
+            {
+                Sword ss = currentSword.GetComponent<Sword>();
+                
+                if(ss.positionIndex == 2)
+                {
+
+                    Debug.Log("DUNDUN" + ss.positionIndex);
+                    isCrouching = true;
+                    animator.SetBool("isCrouching", true);
+                    collider2D.size = new Vector2(0.25f, 0.4f);
+                    collider2D.offset = new Vector2(0f, -0.06f);
+                    
+                }
+            }
+            
         }
         else
         {

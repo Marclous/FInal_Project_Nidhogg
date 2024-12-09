@@ -24,7 +24,9 @@ public class DynamicCamera : MonoBehaviour
     private bool isFixedMode = true; // Starts in Fixed Camera mode
     public int deathnum = 2;
     private float hasWall = 0;
-
+    [Header("Camera Boundaries")]
+    public float minX = -10f; // Minimum X position for the camera
+    public float maxX = 10f; // Maximum X position for the camera
     void Start()
     {
         // Ensure the camera is assigned
@@ -58,8 +60,8 @@ public class DynamicCamera : MonoBehaviour
         // Calculate camera boundaries
         float cameraHeight = 2f * mainCamera.orthographicSize;
         float cameraWidth = cameraHeight * mainCamera.aspect;
-        float leftEdge = mainCamera.transform.position.x - cameraWidth / 2;
-        float rightEdge = mainCamera.transform.position.x + cameraWidth / 2;
+        float leftEdge = mainCamera.transform.position.x - cameraWidth / 2 - 5f;
+        float rightEdge = mainCamera.transform.position.x + cameraWidth / 2 + 5f;
         float wallHeight = cameraHeight;
 
         // Instantiate air walls at the edges
@@ -115,14 +117,14 @@ public class DynamicCamera : MonoBehaviour
         {
             float cameraHeight = 2f * mainCamera.orthographicSize;
             float cameraWidth = cameraHeight * mainCamera.aspect;
-            float leftEdge = mainCamera.transform.position.x - cameraWidth /2 ;
+            float leftEdge = mainCamera.transform.position.x - cameraWidth /2 - 3f;
             moveLeftWall = Instantiate(airWallPrefab, new Vector3(leftEdge, mainCamera.transform.position.y, 0), Quaternion.identity);
         }
         if (hasWall == 2 && moveRightWall == null)
         {
             float cameraHeight = 2f * mainCamera.orthographicSize;
             float cameraWidth = cameraHeight * mainCamera.aspect;
-            float rightEdge = mainCamera.transform.position.x + cameraWidth /2;
+            float rightEdge = mainCamera.transform.position.x + cameraWidth /2 + 3f;
             moveRightWall = Instantiate(airWallPrefab, new Vector3(rightEdge, mainCamera.transform.position.y, 0), Quaternion.identity);
         }
         if (hasWall == 0)
@@ -145,7 +147,9 @@ public class DynamicCamera : MonoBehaviour
 
     void FollowRemainingPlayer(Transform playerTransform)
     {
-        mainCamera.transform.position = new Vector3(playerTransform.position.x, playerTransform.position.y, -10);
+        Vector3 newPosition = new Vector3(playerTransform.position.x, playerTransform.position.y, -10);
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        mainCamera.transform.position = newPosition;
         Destroy(leftWall);
         Destroy(rightWall);
     }
@@ -153,8 +157,12 @@ public class DynamicCamera : MonoBehaviour
     void CenterCameraOnBothPlayers(Transform player1Transform, Transform player2Transform)
     {
         Vector3 midpoint = (player1Transform.position + player2Transform.position) / 2;
-        mainCamera.transform.position = new Vector3(midpoint.x, midpoint.y+2, -10);
+        Vector3 newPosition = new Vector3(midpoint.x, midpoint.y + 2, -10);
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        mainCamera.transform.position = newPosition;
+
         remainingPlayerOffset = mainCamera.transform.position - midpoint;
+
 
         if (deathnum == 2)
         {
