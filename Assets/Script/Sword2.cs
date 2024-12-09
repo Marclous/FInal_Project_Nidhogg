@@ -11,9 +11,9 @@ public class Sword : MonoBehaviour
     public SwordState currentState = SwordState.Dropped;
 
     // 组件引用
-    private Rigidbody2D rigidSword;
-    private Collider2D swordCollider;
-    private Rigidbody2D rigidHolder;
+    public Rigidbody2D rigidSword;
+    public Collider2D swordCollider;
+    public Rigidbody2D rigidHolder;
 
     // 持有相关
     public GameObject holder; // 当前持有者
@@ -45,7 +45,7 @@ public class Sword : MonoBehaviour
     public float backAngle = -70f;
     public bool moved;//玩家是否上下调整了剑的位置
     private Coroutine resetMovedCoroutine; // 用于跟踪当前重置协程
-
+    private SpriteRenderer spriteRenderer;
 
     //xiangji
 
@@ -54,16 +54,29 @@ public class Sword : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("成功初始化");
+        if (cam == null)
+        {
+            // 尝试获取场景中的主相机
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                cam = mainCamera;
+                Debug.Log("Cam was null, assigned main camera: " + mainCamera.name);
+            }
+        }
         camera = cam.GetComponent<DynamicCamera>();
         rigidSword = GetComponent<Rigidbody2D>();
         swordCollider = GetComponent<Collider2D>();
         
         currentOffset = PositionOffsets[positionIndex];
-    }
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        }
 
     private void Update()
     {
-        
+
         switch (currentState)
         {
             case SwordState.Held:
@@ -238,11 +251,23 @@ public class Sword : MonoBehaviour
     /// </summary>
     private void FollowHolder()
     {
-        
+
         float direction = Mathf.Sign(holder.transform.localScale.x); // +1 for right, -1 for left
         Vector3 targetPosition = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
         //transform.position = targetPosition;
         rigidSword.MovePosition(targetPosition);
+        if (direction == 1 && isAiming == false)
+        {
+            spriteRenderer.flipX = false;
+            Debug.Log(direction);
+        }
+        else if (direction == -1) 
+        {
+            spriteRenderer.flipX = true;
+            Debug.Log(direction);
+        }
+        
+        
         // 禁用与持有者的碰撞
         Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), swordCollider, true);
 
@@ -361,11 +386,13 @@ public class Sword : MonoBehaviour
         if(direction < 0) {
             transform.rotation = Quaternion.Euler(0, 0, 70f * direction);
             aimOffset = new Vector3(1f,1f, 0);
+            
             rigidSword.MovePosition(holder.transform.position + aimOffset);
             //transform.position = holder.transform.position + aimOffset ;
         }else if(direction > 0) {
             transform.rotation = Quaternion.Euler(0, 0, -105f * direction);
-            aimOffset = new Vector3(-1f,1f, 0);
+            aimOffset = new Vector3(-1f,1f, 0); 
+            spriteRenderer.flipX = true;
             rigidSword.MovePosition(holder.transform.position + aimOffset);
             //transform.position = holder.transform.position + aimOffset ;
         }
@@ -502,7 +529,7 @@ public class Sword : MonoBehaviour
 
         // 落地后停止旋转
         rigidSword.angularVelocity = 0f;
-        transform.rotation = Quaternion.Euler(0, 0, 90); // 复位旋转
+        transform.rotation = Quaternion.Euler(0, 0, 0); // 复位旋转
     }
 
 

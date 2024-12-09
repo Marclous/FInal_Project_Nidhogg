@@ -45,12 +45,20 @@ public class PlayerSpawner : MonoBehaviour
         if (playerPrefab != null)
         {
             GameObject player = Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
-            GameObject sword = Instantiate(swordPrefab, spawnPoint, Quaternion.identity);
-            /*sword.GetComponent<Sword>().enabled = true;
-            sword.GetComponent<Sword>().holder = player;
-            sword.GetComponent<Sword>().currentState = Sword.SwordState.Held;
-            sword.GetComponent<Sword>().cam = cam;
-            player.GetComponent<PlayerMovement>().currentSword = sword.GetComponent<Sword>();*/
+            // Spawn the sword near the player
+            Vector3 swordSpawnPoint = spawnPoint + new Vector3(0.5f, 0.5f, 0); // Adjust offset as needed
+            GameObject sword = Instantiate(swordPrefab, swordSpawnPoint, Quaternion.identity);
+
+            // Set the sword's state and bind it to the player
+            Sword swordScript = sword.GetComponent<Sword>();
+            swordScript.holder = player;
+            //swordScript.currentState = Sword.SwordState.Held;
+            //swordScript.cam = cam; // Assign the camera to the sword
+            //swordScript.transform.position = player.transform.position; // Match the sword's position to the player
+
+            // Assign the sword to the player's `currentSword` property
+            PlayerMovement playerMovement = player.GetComponent<PlayerMovement>();
+            //playerMovement.currentSword = swordScript;
             camera.deathnum--;
         }
 

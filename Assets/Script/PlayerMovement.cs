@@ -97,7 +97,7 @@ public class PlayerMovement : MonoBehaviour
         Move();
         HandleJumpAndDash();
         HandleCrouch();
-
+        TryPickUpSword();
 
     }
 
@@ -290,6 +290,40 @@ public class PlayerMovement : MonoBehaviour
         isDashing = false;
        
     }
+    private void TryPickUpSword()
+    {
+        // 检查当前是否没有持有剑
+        if (currentSword == null)
+        {
+            // 在玩家范围内寻找所有的剑
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 2f); // 2f 为检测范围，可根据需求调整
+
+            foreach (Collider2D collider in colliders)
+            {
+                Sword sword = collider.GetComponent<Sword>();
+
+                // 检查是否找到掉落状态的剑，且不在地面上
+                if (sword != null && sword.currentState == Sword.SwordState.Dropped && !IsGrounded(sword.gameObject))
+                {
+                    // 拾取剑
+                    sword.PickUp(gameObject); // 绑定当前玩家为剑的持有者
+                    currentSword = sword; // 设置为当前玩家的剑
+                    Debug.Log($"{gameObject.name} picked up {sword.name}");
+                    return; // 成功拾取后退出循环
+                }
+            }
+        }
+    }
+
+    // 检查目标物体是否在地面上
+    private bool IsGrounded(GameObject obj)
+    {
+        // 使用 Physics2D.Raycast 检测物体底部是否接触地面
+        float extraHeight = 0.1f; // 检测范围的额外高度
+        RaycastHit2D hit = Physics2D.Raycast(obj.transform.position, Vector2.down, extraHeight);
+        return hit.collider != null && hit.collider.CompareTag("Ground");
+    }
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -347,11 +381,11 @@ public class PlayerMovement : MonoBehaviour
         // 对于 2D 游戏，翻转玩家朝向
         if (direction.x < 0)
         {
-            transform.localScale = new Vector3(-1, transform.localScale.y, 1); // 面向左侧
+            transform.localScale = new Vector3(-3, transform.localScale.y, 1); // 面向左侧
         }
         else
         {
-            transform.localScale = new Vector3(1, transform.localScale.y, 1); // 面向右侧
+            transform.localScale = new Vector3(3, transform.localScale.y, 1); // 面向右侧
         }
 
         // 对于 3D 游戏，使用旋转朝向对手
