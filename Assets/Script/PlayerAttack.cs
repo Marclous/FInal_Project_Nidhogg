@@ -26,24 +26,21 @@ public class PlayerAttack : MonoBehaviour
     {
         if (timeBtwAttack <= 0)
         {
-            if (((Input.GetKey(KeyCode.F) && playerMovement.playerTag == "Player 1") || (Input.GetKey(KeyCode.M) && playerMovement.playerTag == "Player 1")) && playerMovement.currentSword == null)
+            if (((Input.GetKey(KeyCode.F) && playerMovement.playerTag == "Player 1") || (Input.GetKey(KeyCode.M) && playerMovement.playerTag == "Player 2")) && playerMovement.currentSword == null)
             {
-                Debug.Log(playerMovement.playerTag+" is punching");
+                Debug.Log(playerMovement.playerTag + " is punching");
                 anim.SetBool("isPunching", true);
                 StartCoroutine(PunchCD());
-                Collider2D[] enemyPlayer = Physics2D.OverlapCircleAll(attackPos.position, attackRange, whatIsEnemies);
-                for (int i = 0; i < enemyPlayer.Length; i++)
+                Collider2D enemyPlayer = Physics2D.OverlapCircle(attackPos.position, attackRange, whatIsEnemies);
+                PlayerMovement enemy = enemyPlayer.GetComponent<PlayerMovement>();
+                if (enemy.allowMove == false)
                 {
-                    PlayerMovement enemy = enemyPlayer[i].GetComponent<PlayerMovement>();
-                    if (enemy.allowMove == false)
-                    {
-                        Destroy(enemyPlayer[i].gameObject);
-                    }
-                    else
-                    {
-                        enemyPlayer[i].GetComponent<PlayerMovement>().StartParalyze();
-                    }
-
+                    Debug.Log("Kill"+enemy.tag);
+                    Destroy(enemyPlayer.gameObject);
+                }
+                else
+                {
+                    enemyPlayer.GetComponent<PlayerMovement>().StartParalyze();
                 }
                 
             }
@@ -55,7 +52,7 @@ public class PlayerAttack : MonoBehaviour
         }
 
     }
-    
+
 
 
 

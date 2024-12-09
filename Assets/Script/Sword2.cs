@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.FilePathAttribute;
 
@@ -9,12 +10,13 @@ public class Sword : MonoBehaviour
     // 剑的状态枚举
     public enum SwordState { Held, Dropped, Thrown,Defend }
     public SwordState currentState = SwordState.Dropped;
-
+    public AudioClip clashSound, parrySuc, stabSound, swordTouch, throwSword;
+    private AudioSource audioSource;
     // 组件引用
     public Rigidbody2D rigidSword;
     public Collider2D swordCollider;
     public Rigidbody2D rigidHolder;
-
+    public GameObject deathObject;
     // 持有相关
     public GameObject holder; // 当前持有者
     public Vector3 padding;   // 剑相对于持有者的位置偏移
@@ -71,7 +73,7 @@ public class Sword : MonoBehaviour
         camera = cam.GetComponent<DynamicCamera>();
         rigidSword = GetComponent<Rigidbody2D>();
         swordCollider = GetComponent<Collider2D>();
-        
+        audioSource = GetComponent<AudioSource>();
         currentOffset = PositionOffsets[positionIndex];
         spriteRenderer = GetComponent<SpriteRenderer>();
         
@@ -211,7 +213,7 @@ public class Sword : MonoBehaviour
     private void StartDefending() {
         currentState = SwordState.Defend;
         holderScript.isDefending = true;
-        
+        holderScript.animator.SetBool("isParry", true);
 
         StartCoroutine(ResetDefense());
     }
@@ -234,6 +236,7 @@ public class Sword : MonoBehaviour
     private IEnumerator ResetDefense()
     {
         yield return new WaitForSeconds(0.8f); // 等待指定时间
+        holderScript.animator.SetBool("isParry", false);
         currentState = SwordState.Held;
         holderScript.isDefending = false;
         transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -497,7 +500,8 @@ public class Sword : MonoBehaviour
         rigidSword.constraints = RigidbodyConstraints2D.None; // 解锁旋转
         rigidSword.isKinematic = false;
         rigidSword.velocity = direction * throwSpeed;
-        
+        audioSource.clip = throwSword;
+        audioSource.Play();
 
         if (previousHolder != null)
         {
@@ -630,7 +634,7 @@ public class Sword : MonoBehaviour
         // 获取当前剑的碰撞范围内的所有碰撞体
         Collider2D[] colliders = Physics2D.OverlapBoxAll(transform.position, swordCollider.bounds.size, 0);
         Debug.Log("Try to defense down");
-
+        
         foreach (var collider in colliders)
         {
             Sword otherSword = collider.GetComponent<Sword>();
@@ -663,7 +667,8 @@ public class Sword : MonoBehaviour
             //otherSword.previousHolder = holder;
             // 获取持有者的 PlayerMovement 脚本
             PlayerMovement otherHolderScript = otherSword.holder.GetComponent<PlayerMovement>();
-
+            audioSource.clip = parrySuc;
+            audioSource.Play();
             if (otherHolderScript != null)
             {
                 // 清除持有者对剑的引用
@@ -726,6 +731,9 @@ public class Sword : MonoBehaviour
             if (collision.gameObject.CompareTag("Player 1") || collision.gameObject.CompareTag("Player 2"))
             {
                 Debug.Log("Sword hit player: " + collision.gameObject.name);
+                audioSource.clip = stabSound;
+                audioSource.Play();
+                Instantiate(collision.gameObject.GetComponent<PlayerMovement>().deathObject, holder.transform);
                 Destroy(collision.gameObject);
                 camera.deathnum++;
                 currentState = SwordState.Dropped;
@@ -735,6 +743,8 @@ public class Sword : MonoBehaviour
             if (collision.gameObject.CompareTag("Ground"))
             {
                 Debug.Log("Sword hit the ground.");
+                audioSource.clip = clashSound;
+                audioSource.Play();
                 currentState = SwordState.Dropped;
             }
 
@@ -749,7 +759,8 @@ public class Sword : MonoBehaviour
         if (currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && !isDefending) 
         {
             Sword otherSword = collision.gameObject.GetComponent<Sword>();
-
+            audioSource.clip = swordTouch;
+            audioSource.Play();
             Debug.Log("Collided with other sword");
             float horizontalDirection = collision.transform.position.x - transform.position.x;
             
@@ -769,6 +780,9 @@ public class Sword : MonoBehaviour
         {
             if (!collision.gameObject.CompareTag(holder.tag) && collision.gameObject.layer == 6)
             {
+                audioSource.clip = stabSound;
+                audioSource.Play();
+                GameObject death = Instantiate(deathObject, collision.gameObject.transform);
                 Debug.Log("Kill" + collision.gameObject.name);
                 camera.deathnum++;
                 Destroy(collision.gameObject);
@@ -778,6 +792,7 @@ public class Sword : MonoBehaviour
 
     }
 
+    
     private bool IsGrounded()
     {
         Collider2D[] hits = Physics2D.OverlapBoxAll(transform.position, swordCollider.bounds.size, 0);
@@ -785,6 +800,7 @@ public class Sword : MonoBehaviour
         {
             if (hit.CompareTag("Ground"))
             {
+                
                 return true;
             }
         }

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7442923083254117315}
   - component: {fileID: 4501796543968794237}
   - component: {fileID: 2731370372165514725}
+  - component: {fileID: 5846000772975388698}
   m_Layer: 3
   m_Name: SWORD1
   m_TagString: sword
@@ -172,9 +173,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentState: 1
+  clashSound: {fileID: 8300000, guid: 01027af79bbbf5d4b95dc186fbc85f83, type: 3}
+  parrySuc: {fileID: 8300000, guid: 0674895baa3462344b0b11672fd724b3, type: 3}
+  stabSound: {fileID: 8300000, guid: cc64b9c7aa4672040823d279b208b8c2, type: 3}
+  swordTouch: {fileID: 8300000, guid: 41bd72ee028863243bb85deeb2073982, type: 3}
+  throwSword: {fileID: 8300000, guid: b7ba443e6e09457499ddf06f05e8ec4e, type: 3}
   rigidSword: {fileID: 0}
   swordCollider: {fileID: 0}
   rigidHolder: {fileID: 0}
+  deathObject: {fileID: 8770320582250567398, guid: 95ec6f018d69024498aa77f4785a0e2f, type: 3}
   holder: {fileID: 0}
   padding: {x: 2, y: 0.5, z: 0}
   PositionOffsets:
@@ -188,7 +195,7 @@ MonoBehaviour:
   throwSpeed: 10
   aimOffset: {x: -199, y: 0.9, z: 0}
   aimX: 0.2
-  previousHolder: {fileID: 0}
+  previousHolder: {fileID: 8770320582250567398, guid: 95ec6f018d69024498aa77f4785a0e2f, type: 3}
   thrustDuration: 0.2
   frontAngle: 90
   backAngle: 90
@@ -197,3 +204,99 @@ MonoBehaviour:
   Defenseoffset2: {x: 0.7, y: 0.5, z: 0}
   cam: {fileID: 0}
   camera: {fileID: 0}
+--- !u!82 &5846000772975388698
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7467299643324856824}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

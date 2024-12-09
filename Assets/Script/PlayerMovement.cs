@@ -6,6 +6,8 @@ using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public AudioClip[] sounds = {};
+    private AudioSource audioSource;
     public float dashForce = 10f;
     public float dashSpeed = 20f;
     public float dashAngle = 30f; // Dash angle in degrees
@@ -16,7 +18,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     public bool isGrounded;
     public bool allowMove = true;
-    
+    public GameObject deathObject;
     [SerializeField] private float speed;
     public float speedIncrease = 2f; // Additional speed after holding the key
     public float holdTime = 1f; // Time required to hold before speed increases
@@ -49,13 +51,13 @@ public class PlayerMovement : MonoBehaviour
     public Transform opponent;// Get opponent
     public string opponentTag;
     public bool isDefending = false;
-
+    private bool isPlaying;
     void Start()
     {
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
         rb = GetComponent<Rigidbody2D>();
         collider2D = GetComponent<CapsuleCollider2D>();
-
+        audioSource = GetComponent<AudioSource>();
         // Retrieve the tag of the player to distinguish control
         playerTag = gameObject.tag;
         animator = GetComponent<Animator>();
@@ -72,8 +74,22 @@ public class PlayerMovement : MonoBehaviour
         if(currentSword != null) {
             
         }
-        
-
+        if(allowMove == false) {
+            animator.Play("Stun");
+            isPlaying = true;
+        }
+        if (isPlaying)
+        {
+            // 检测动画是否播放完成
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.normalizedTime >= 1f && !animator.IsInTransition(0))
+            {
+                // 恢复状态机逻辑
+                animator.Rebind();
+                animator.Update(0);
+                isPlaying = false;
+            }
+        }
        if(playerTag != null){
        if(playerTag == "Player 1"){
             opponentTag =  "Player 2";
@@ -86,6 +102,7 @@ public class PlayerMovement : MonoBehaviour
         // 检测场上是否有对手
         DetectOpponent();
 
+        
         // 如果存在对手，则调整朝向
         if (opponent != null)
         {
@@ -114,7 +131,15 @@ public class PlayerMovement : MonoBehaviour
         //TryPickUpSword();
 
     }
+    private IEnumerator ResetToStateMachine()
+    {
+        // 等待一帧，确保 Play 动画执行
+        yield return null;
 
+        // 重置状态机逻辑
+        animator.Rebind();
+        animator.Update(0);
+    }
     void Move()
     {
         float xposition = 0f;
@@ -136,7 +161,8 @@ public class PlayerMovement : MonoBehaviour
         {
             isMoving = true;
             holdTimer += Time.deltaTime;
-
+            
+            audioSource.Play();
             if (holdTimer >= holdTime)
             {
                 currentSpeed = speed + speedIncrease;
@@ -162,7 +188,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("isRunning", isRunning);
             holdTimer = 0f;
             currentSpeed = speed; // Reset to base speed
-
+            audioSource.Stop();
             // if (opponent.position.x < transform.position.x)
             // {
             //     Debug.Log(opponent.position.x);
