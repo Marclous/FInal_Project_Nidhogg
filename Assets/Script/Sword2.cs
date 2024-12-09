@@ -63,6 +63,7 @@ public class Sword : MonoBehaviour
 
     private void Update()
     {
+        
         switch (currentState)
         {
             case SwordState.Held:
@@ -501,7 +502,7 @@ public class Sword : MonoBehaviour
 
         // 落地后停止旋转
         rigidSword.angularVelocity = 0f;
-        transform.rotation = Quaternion.Euler(0, 0, 0); // 复位旋转
+        transform.rotation = Quaternion.Euler(0, 0, 90); // 复位旋转
     }
 
 

@@ -28,13 +28,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7467299643324856824}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.9501, y: -2.5616, z: 0}
-  m_LocalScale: {x: 2.8112, y: 0.0985, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 3.58, y: 3.58, z: 3.58}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!212 &8003151279250230028
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -76,8 +76,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.8930817, g: 0.075827554, b: 0.075827554, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 2c502fa3945c2034698f396a0b3d367c, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -119,18 +119,18 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.06}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 0.5, y: 0.5}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.03, y: 0.24}
   m_EdgeRadius: 0
 --- !u!50 &4501796543968794237
 Rigidbody2D:
@@ -171,20 +171,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c3190dde4378d54f9e74ece19f2035e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentState: 1
-  holder: {fileID: 0}
-  padding: {x: 0, y: 0, z: 0}
+  currentState: 0
+  holder: {fileID: 2469390966789420158, guid: ae3f0f7a826ea1f4eba6457c44171380, type: 3}
+  padding: {x: 2, y: 0.5, z: 0}
   PositionOffsets:
   - {x: 0.5, y: 1, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: 0.5, y: 0, z: 0}
   forceAmount: 10
   moveDistance: 1
-  moveSpeed: 5
+  moveSpeed: 50
   throwSpeed: 10
   aimOffset: {x: -1, y: 1, z: 0}
+  previousHolder: {fileID: 0}
   thrustDuration: 0.2
   frontAngle: 115
   backAngle: -70
+  moved: 0
   cam: {fileID: 0}
   camera: {fileID: 0}

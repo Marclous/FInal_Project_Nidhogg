@@ -163,8 +163,8 @@ public class PlayerMovement : MonoBehaviour
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
     }
-    private void StartParalyze() {
-        Debug.Log("Not Moving");
+    public void StartParalyze() {
+        Debug.Log(playerTag + " Not Moving");
         allowMove = false;
         
 
