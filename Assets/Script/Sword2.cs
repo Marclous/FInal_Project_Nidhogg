@@ -733,7 +733,9 @@ public class Sword : MonoBehaviour
                 Debug.Log("Sword hit player: " + collision.gameObject.name);
                 audioSource.clip = stabSound;
                 audioSource.Play();
-                Instantiate(collision.gameObject.GetComponent<PlayerMovement>().deathObject, holder.transform);
+                GameObject death = Instantiate(previousHolder.GetComponent<PlayerMovement>().deathObject, collision.transform.localPosition, Quaternion.identity);
+                // 确保在动画结束后销毁
+                DestroyAfterAnimation(death);
                 Destroy(collision.gameObject);
                 camera.deathnum++;
                 currentState = SwordState.Dropped;
@@ -782,17 +784,39 @@ public class Sword : MonoBehaviour
             {
                 audioSource.clip = stabSound;
                 audioSource.Play();
-                GameObject death = Instantiate(deathObject, collision.gameObject.transform);
+                //GameObject death = Instantiate(deathObject, collision.gameObject.transform);
                 Debug.Log("Kill" + collision.gameObject.name);
                 camera.deathnum++;
+                GameObject death = Instantiate(holder.GetComponent<PlayerMovement>().deathObject, collision.transform.localPosition, Quaternion.identity);
                 Destroy(collision.gameObject);
+                // 确保在动画结束后销毁
+                DestroyAfterAnimation(death);
             }
 
         }
 
     }
+    void DestroyAfterAnimation(GameObject obj)
+    {
+        Animator animator = obj.GetComponent<Animator>();
+        if (animator != null)
+        {
+            // 获取动画时长并启动销毁协程
+            float animationDuration = animator.GetCurrentAnimatorStateInfo(0).length;
+            StartCoroutine(DestroyAfterDelay(obj, animationDuration));
+        }
+        else
+        {
+            // 如果没有动画，立即销毁
+            Destroy(obj);
+        }
+    }
+    IEnumerator DestroyAfterDelay(GameObject obj, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Destroy(obj);
+    }
 
-    
     private bool IsGrounded()
     {
         Collider2D[] hits = Physics2D.OverlapBoxAll(transform.position, swordCollider.bounds.size, 0);

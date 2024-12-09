@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 614126294653090040}
   - component: {fileID: 1955750857451829440}
   m_Layer: 0
-  m_Name: Portal
+  m_Name: Bound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76,7 +76,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.18, y: 2.97}
+  m_Size: {x: 0.73, y: 8.77}
   m_EdgeRadius: 0
 --- !u!114 &1955750857451829440
 MonoBehaviour:
