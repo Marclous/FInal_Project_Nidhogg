@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Net;
 
 public class DynamicCamera : MonoBehaviour
 {
@@ -12,29 +10,28 @@ public class DynamicCamera : MonoBehaviour
     public Vector3 spawnOffset = new Vector3(0, 0, 0); // Offset for respawning relative to the camera
     public float respawnCooldown = 3f; // Cooldown duration before respawning
 
-    private bool isRespawning = false;
+    public GameObject airWallPrefab; // Prefab for the air wall
+    private GameObject leftWall; // Instance for the left wall
+    private GameObject rightWall; // Instance for the right wall
+    private GameObject moveLeftWall;
+    private GameObject moveRightWall;
 
+    private bool isRespawning = false;
     private GameObject player1; // Cached reference for Player 1
     private GameObject player2; // Cached reference for Player 2
     private Vector3 remainingPlayerOffset; // Offset of the remaining player relative to the camera
 
     private bool isFixedMode = true; // Starts in Fixed Camera mode
-    //public Sword swordstate;
     public int deathnum = 2;
+    private float hasWall = 0;
 
     void Start()
     {
-       // GameObject swordObject = GameObject.FindWithTag("Sword"); // 假设 Sword 有 "Sword" 标签
-        //if (swordObject != null)
-        //{
-        //    swordstate = swordObject.GetComponent<Sword>();
-        //}
         // Ensure the camera is assigned
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
         }
-
 
         // Cache initial player references
         player1 = GameObject.FindGameObjectWithTag(player1Tag);
@@ -45,6 +42,37 @@ public class DynamicCamera : MonoBehaviour
         {
             remainingPlayerOffset = mainCamera.transform.position - player1.transform.position;
         }
+
+        // Generate air walls at the camera boundaries
+        GenerateAirWalls();
+    }
+
+    void GenerateAirWalls()
+    {
+        if (airWallPrefab == null)
+        {
+            Debug.LogError("AirWall prefab not assigned!");
+            return;
+        }
+
+        // Calculate camera boundaries
+        float cameraHeight = 2f * mainCamera.orthographicSize;
+        float cameraWidth = cameraHeight * mainCamera.aspect;
+        float leftEdge = mainCamera.transform.position.x - cameraWidth / 2;
+        float rightEdge = mainCamera.transform.position.x + cameraWidth / 2;
+        float wallHeight = cameraHeight;
+
+        // Instantiate air walls at the edges
+        leftWall = Instantiate(airWallPrefab, new Vector3(leftEdge, mainCamera.transform.position.y, 0), Quaternion.identity);
+        rightWall = Instantiate(airWallPrefab, new Vector3(rightEdge, mainCamera.transform.position.y, 0), Quaternion.identity);
+
+        // Scale the walls to match the camera height
+        Vector3 wallScale = leftWall.transform.localScale;
+        wallScale.y = wallHeight;
+        leftWall.transform.localScale = wallScale;
+        rightWall.transform.localScale = wallScale;
+
+        Debug.Log("Air walls generated.");
     }
 
     void Update()
@@ -55,26 +83,59 @@ public class DynamicCamera : MonoBehaviour
 
         if (isFixedMode)
         {
+            hasWall = 0;
             FixedCamera(); // Fixed camera logic
             return;
         }
 
-
-        if (player1 != null && player2 == null)
+        if (player1 != null && player2 == null )
         {
+            hasWall = 1;
             FollowRemainingPlayer(player1.transform);
-          
-        }
-        else if (player2 != null && player1 == null)
-        {
-            FollowRemainingPlayer(player2.transform);
+            if (moveRightWall != null)
+            {
+                Destroy(moveRightWall);
+            }
             
+        }
+        else if (player2 != null && player1 == null  )
+        {
+            hasWall= 2;
+            FollowRemainingPlayer(player2.transform);
+            if (moveLeftWall != null)
+            {
+                Destroy(moveLeftWall);
+            }
         }
         if (player1 != null && player2 != null)
         {
             CenterCameraOnBothPlayers(player1.transform, player2.transform);
         }
-
+        if (hasWall == 1 && moveLeftWall == null)
+        {
+            float cameraHeight = 2f * mainCamera.orthographicSize;
+            float cameraWidth = cameraHeight * mainCamera.aspect;
+            float leftEdge = mainCamera.transform.position.x - cameraWidth /2 ;
+            moveLeftWall = Instantiate(airWallPrefab, new Vector3(leftEdge, mainCamera.transform.position.y, 0), Quaternion.identity);
+        }
+        if (hasWall == 2 && moveRightWall == null)
+        {
+            float cameraHeight = 2f * mainCamera.orthographicSize;
+            float cameraWidth = cameraHeight * mainCamera.aspect;
+            float rightEdge = mainCamera.transform.position.x + cameraWidth /2;
+            moveRightWall = Instantiate(airWallPrefab, new Vector3(rightEdge, mainCamera.transform.position.y, 0), Quaternion.identity);
+        }
+        if (hasWall == 0)
+        {
+            if (moveLeftWall != null)
+            {
+                Destroy(moveLeftWall);
+            }
+            if (moveRightWall != null)
+            {
+                Destroy(moveRightWall);
+            }
+        }
         // Both players dead
         if (player1 == null && player2 == null)
         {
@@ -84,57 +145,34 @@ public class DynamicCamera : MonoBehaviour
 
     void FollowRemainingPlayer(Transform playerTransform)
     {
-        // Keep the camera at the same relative offset to the remaining player
         mainCamera.transform.position = new Vector3(playerTransform.position.x, playerTransform.position.y, -10);
-        
+        Destroy(leftWall);
+        Destroy(rightWall);
     }
 
     void CenterCameraOnBothPlayers(Transform player1Transform, Transform player2Transform)
     {
-        //Debug.Log("Following midpoint");
-        // Calculate the midpoint between both players
         Vector3 midpoint = (player1Transform.position + player2Transform.position) / 2;
-
-        // Center the camera on the midpoint
-        mainCamera.transform.position = new Vector3(
-            midpoint.x,
-            midpoint.y,
-            -10
-        );
-
-        // Update the offset for a new fixed state
+        mainCamera.transform.position = new Vector3(midpoint.x, midpoint.y+2, -10);
         remainingPlayerOffset = mainCamera.transform.position - midpoint;
+
         if (deathnum == 2)
         {
             isFixedMode = true;
         }
     }
+
     void EnterFixedMode()
     {
         Debug.Log("Both players dead, entering Fixed Camera mode");
         isFixedMode = true;
-        // Optionally reset the camera to a fixed position here
     }
+
     private void FixedCamera()
     {
-        //Debug.Log("Fixed Camera mode");
-        // Keep the camera fixed at the current position
-
-        //mainCamera.transform.position = new Vector3(
-        //    Mathf.Clamp(mainCamera.transform.position.x, fixedCameraBoundsMin.x, fixedCameraBoundsMax.x),
-        //    Mathf.Clamp(mainCamera.transform.position.y, fixedCameraBoundsMin.y, fixedCameraBoundsMax.y),
-        //    -10
-        //);
-
-        // Prevent players from crossing the boundaries (air walls)
-         if(deathnum == 1)
-         {
-             isFixedMode = false;
-         }
-
-
-
+        if (deathnum == 1)
+        {
+            isFixedMode = false;
+        }
     }
-
-
 }

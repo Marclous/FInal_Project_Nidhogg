@@ -1,9 +1,12 @@
 ﻿using UnityEditor;
-using UnityEditor.UI;
 using UnityEngine;
+using System;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public AudioClip[] sounds = {};
+    private AudioSource audioSource;
     public float dashForce = 10f;
     public float dashSpeed = 20f;
     public float dashAngle = 30f; // Dash angle in degrees
@@ -13,7 +16,8 @@ public class PlayerMovement : MonoBehaviour
     private bool isDashing = false;
     private Rigidbody2D rb;
     public bool isGrounded;
-    
+    public bool allowMove = true;
+    public GameObject deathObject;
     [SerializeField] private float speed;
     public float speedIncrease = 2f; // Additional speed after holding the key
     public float holdTime = 1f; // Time required to hold before speed increases
@@ -27,6 +31,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpTime;
     public float jumpMultiplier;
 
+    public Animator animator;
     Vector2 vecGravity;
     bool isJumping;
     float jumpCounter;
@@ -37,6 +42,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform crouchCheckPoint; 
     public float crouchCheckRadius = 0.5f; 
     public LayerMask swordLayer;
+    private new CapsuleCollider2D collider2D;
 
     private bool isCrouching = false; 
     public Sword currentSword; 
@@ -44,18 +50,45 @@ public class PlayerMovement : MonoBehaviour
     public Transform opponent;// Get opponent
     public string opponentTag;
     public bool isDefending = false;
-
+    private bool isPlaying;
     void Start()
     {
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
         rb = GetComponent<Rigidbody2D>();
-
-        // Retrieve the tag of the player to distinguish controls
+        collider2D = GetComponent<CapsuleCollider2D>();
+        audioSource = GetComponent<AudioSource>();
+        // Retrieve the tag of the player to distinguish control
         playerTag = gameObject.tag;
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
+        if(currentSword != null) {
+            animator.SetBool("hasSword", true);
+            animator.SetInteger("SwordPos", currentSword.positionIndex);
+        }else{
+            animator.SetBool("hasSword", false);
+        }
+        if(currentSword != null) {
+            
+        }
+        if(allowMove == false) {
+            animator.Play("Stun");
+            isPlaying = true;
+        }
+        if (isPlaying)
+        {
+            // 检测动画是否播放完成
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.normalizedTime >= 1f && !animator.IsInTransition(0))
+            {
+                // 恢复状态机逻辑
+                animator.Rebind();
+                animator.Update(0);
+                isPlaying = false;
+            }
+        }
        if(playerTag != null){
        if(playerTag == "Player 1"){
             opponentTag =  "Player 2";
@@ -68,6 +101,7 @@ public class PlayerMovement : MonoBehaviour
         // 检测场上是否有对手
         DetectOpponent();
 
+        
         // 如果存在对手，则调整朝向
         if (opponent != null)
         {
@@ -75,7 +109,9 @@ public class PlayerMovement : MonoBehaviour
         }
 
        }
-
+        if(Input.GetKey(KeyCode.Q) && playerTag == "Player 1") {
+            StartParalyze();
+        }
 
         if(isRunning) {
             Physics2D.IgnoreLayerCollision(6,6);
@@ -91,22 +127,30 @@ public class PlayerMovement : MonoBehaviour
         Move();
         HandleJumpAndDash();
         HandleCrouch();
-
+        //TryPickUpSword();
 
     }
+    private IEnumerator ResetToStateMachine()
+    {
+        // 等待一帧，确保 Play 动画执行
+        yield return null;
 
+        // 重置状态机逻辑
+        animator.Rebind();
+        animator.Update(0);
+    }
     void Move()
     {
         float xposition = 0f;
 
         // Use different inputs based on the player's tag
-        if (playerTag == "Player 1" && isDefending == false)
+        if (playerTag == "Player 1" && isDefending == false && allowMove == true)
         {
             xposition = Input.GetKey(KeyCode.A) ? -1 : (Input.GetKey(KeyCode.D) ? 1 : 0);
             
 
         }
-        else if (playerTag == "Player 2" && isDefending == false)
+        else if (playerTag == "Player 2" && isDefending == false && allowMove == true)
         {
             xposition = Input.GetKey(KeyCode.LeftArrow) ? -1 : (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
             
@@ -116,11 +160,13 @@ public class PlayerMovement : MonoBehaviour
         {
             isMoving = true;
             holdTimer += Time.deltaTime;
-
+            
+            audioSource.Play();
             if (holdTimer >= holdTime)
             {
                 currentSpeed = speed + speedIncrease;
                 isRunning = true;
+                animator.SetBool("isRunning", isRunning);
 
             }
 
@@ -138,9 +184,10 @@ public class PlayerMovement : MonoBehaviour
         {
             isMoving = false;
             isRunning = false;
+            animator.SetBool("isRunning", isRunning);
             holdTimer = 0f;
             currentSpeed = speed; // Reset to base speed
-
+            audioSource.Stop();
             // if (opponent.position.x < transform.position.x)
             // {
             //     Debug.Log(opponent.position.x);
@@ -156,6 +203,20 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.velocity = new Vector2(xposition * currentSpeed, rb.velocity.y);
+        animator.SetFloat("xVelocity", Math.Abs(rb.velocity.x));
+        animator.SetFloat("yVelocity", rb.velocity.y);
+    }
+    public void StartParalyze() {
+        Debug.Log(playerTag + " Not Moving");
+        allowMove = false;
+        
+
+        StartCoroutine(StopParalyze());
+    }
+    private IEnumerator StopParalyze()
+    {
+        yield return new WaitForSeconds(0.8f); // 等待指定时间
+        allowMove = true;
     }
 
     void HandleJumpAndDash()
@@ -164,12 +225,14 @@ public class PlayerMovement : MonoBehaviour
         if (playerTag == "Player 1" && Input.GetKeyDown(KeyCode.G) && isGrounded)
         {
             Debug.Log("Jump Sucess");
+            
             Jump();
             
         }
         else if (playerTag == "Player 2" && Input.GetKeyDown(KeyCode.N) && isGrounded)
         {
             Jump();
+            //animator.SetBool("isJumping", !isGrounded);
         }
 
         if (Input.GetKeyDown(KeyCode.F) && !isGrounded && !isDashing && playerTag == "Player 1")
@@ -183,8 +246,10 @@ public class PlayerMovement : MonoBehaviour
         if (rb.velocity.y > 0 && isJumping)
         {
             jumpCounter += Time.deltaTime;
-            if (jumpCounter > jumpTime) isJumping = false;
-
+            if (jumpCounter > jumpTime) {
+                isJumping = false;
+                
+            }
             rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
         }
 
@@ -204,6 +269,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         isJumping = true;
+        animator.SetBool("isJumping", isJumping);
         jumpCounter = 0;
     }
 
@@ -215,8 +281,9 @@ public class PlayerMovement : MonoBehaviour
             (playerTag == "Player 2" && Input.GetKey(KeyCode.DownArrow)))
         {
             isCrouching = true;
-            
-
+            animator.SetBool("isCrouching", true);
+            collider2D.size = new Vector2(0.25f, 0.4f);
+            collider2D.offset = new Vector2(0f, -0.06f);
             // Check if there is sword on the ground
             Collider2D swordCollider = Physics2D.OverlapCircle(crouchCheckPoint.position, crouchCheckRadius, swordLayer);
             if (swordCollider != null && swordCollider != this)
@@ -233,6 +300,9 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             isCrouching = false;
+            animator.SetBool("isCrouching", false);
+            collider2D.size = new Vector2(0.25f, 0.55f);
+            collider2D.offset = new Vector2(0f, 0f);
         }
     }
     void PickUpSword(Sword sword)
@@ -272,17 +342,65 @@ public class PlayerMovement : MonoBehaviour
         isDashing = false;
        
     }
+    private void TryPickUpSword()
+    {
+        // 检查当前是否没有持有剑
+        if (currentSword == null)
+        {
+            // 在玩家范围内寻找所有的剑
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 2f); // 2f 为检测范围，可根据需求调整
+
+            foreach (Collider2D collider in colliders)
+            {
+                Sword sword = collider.GetComponent<Sword>();
+
+                // 检查是否找到掉落状态的剑，且不在地面上
+                if (sword != null && sword.currentState == Sword.SwordState.Dropped && !IsGrounded(sword.gameObject))
+                {
+                    // 拾取剑
+                    sword.PickUp(gameObject); // 绑定当前玩家为剑的持有者
+                    currentSword = sword; // 设置为当前玩家的剑
+                    Debug.Log($"{gameObject.name} picked up {sword.name}");
+                    return; // 成功拾取后退出循环
+                }
+            }
+        }
+    }
+
+    // 检查目标物体是否在地面上
+    private bool IsGrounded(GameObject obj)
+    {
+        // 使用 Physics2D.Raycast 检测物体底部是否接触地面
+        float extraHeight = 0.1f; // 检测范围的额外高度
+        RaycastHit2D hit = Physics2D.Raycast(obj.transform.position, Vector2.down, extraHeight);
+        return hit.collider != null && hit.collider.CompareTag("Ground");
+    }
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
+            animator.SetBool("isJumping", !isGrounded);
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 1") && gameObject.CompareTag("Player 2")) {
+            
+            Sword otherSword = collision.gameObject.GetComponent<PlayerMovement>().currentSword.GetComponent<Sword>();
+            if(otherSword != null) {
+                otherSword.DetachSelfSword();
+            }
 
         }
         if(isDashing == true && collision.gameObject.CompareTag("Player 2") && gameObject.CompareTag("Player 1")) {
+            Debug.Log("Drop sword");
+            collision.gameObject.GetComponent<PlayerMovement>().StartParalyze();
+            Sword otherSword = collision.gameObject.GetComponent<PlayerMovement>().currentSword.GetComponent<Sword>();
+            
+            
+            if(otherSword != null) {
+                otherSword.DetachSelfSword();
+            }
             
         }
     }
@@ -316,11 +434,11 @@ public class PlayerMovement : MonoBehaviour
         // 对于 2D 游戏，翻转玩家朝向
         if (direction.x < 0)
         {
-            transform.localScale = new Vector3(-1, transform.localScale.y, 1); // 面向左侧
+            transform.localScale = new Vector3(-3, transform.localScale.y, 1); // 面向左侧
         }
         else
         {
-            transform.localScale = new Vector3(1, transform.localScale.y, 1); // 面向右侧
+            transform.localScale = new Vector3(3, transform.localScale.y, 1); // 面向右侧
         }
 
         // 对于 3D 游戏，使用旋转朝向对手

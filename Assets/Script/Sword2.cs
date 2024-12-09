@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+
 
 public class Sword : MonoBehaviour
 {
     // 剑的状态枚举
-    public enum SwordState { Held, Dropped, Thrown }
+    public enum SwordState { Held, Dropped, Thrown,Defend }
     public SwordState currentState = SwordState.Dropped;
-
+    public AudioClip clashSound, parrySuc, stabSound, swordTouch, throwSword;
+    private AudioSource audioSource;
     // 组件引用
-    private Rigidbody2D rigidSword;
-    private Collider2D swordCollider;
-    private Rigidbody2D rigidHolder;
-
+    public Rigidbody2D rigidSword;
+    public Collider2D swordCollider;
+    public Rigidbody2D rigidHolder;
+    public GameObject deathObject;
     // 持有相关
     public GameObject holder; // 当前持有者
     public Vector3 padding;   // 剑相对于持有者的位置偏移
@@ -22,7 +26,7 @@ public class Sword : MonoBehaviour
         new Vector3(0.5f, 0.5f, 0), // 中
         new Vector3(0.5f, 0f, 0) // 低
     };
-    private int positionIndex = 1; // 当前位置索引 (中)
+    public int positionIndex = 1; // 当前位置索引 (中)
     private Vector3 currentOffset; // 当前偏移量
     public float forceAmount = 10f;
     public float moveDistance = 1f; // Distance to move backward
@@ -32,6 +36,7 @@ public class Sword : MonoBehaviour
     [SerializeField] private float throwSpeed = 10f;
     private bool isAiming = false;
     public Vector3 aimOffset = new Vector3(-1f, 1f, 0);
+    public float aimX = -1f;
     public GameObject previousHolder; // Save the current holder
 
     // 动作相关
@@ -39,10 +44,14 @@ public class Sword : MonoBehaviour
     private PlayerMovement holderScript;
     [SerializeField] private float thrustDuration = 0.2f;
     private bool isDefending = false;
-    public float frontAngle = 115f;
-    public float backAngle = -70f;
+    public float frontAngle = 90f;
+    public float backAngle = -90f;
+    public bool moved;//玩家是否上下调整了剑的位置
+    private Coroutine resetMovedCoroutine; // 用于跟踪当前重置协程
+    private SpriteRenderer spriteRenderer;
 
-
+    public Vector3 Defenseoffset1;
+    public Vector3 Defenseoffset2;
     //xiangji
 
     public Camera cam;
@@ -50,15 +59,29 @@ public class Sword : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("成功初始化");
+        if (cam == null)
+        {
+            // 尝试获取场景中的主相机
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                cam = mainCamera;
+                Debug.Log("Cam was null, assigned main camera: " + mainCamera.name);
+            }
+        }
         camera = cam.GetComponent<DynamicCamera>();
         rigidSword = GetComponent<Rigidbody2D>();
         swordCollider = GetComponent<Collider2D>();
-        
+        audioSource = GetComponent<AudioSource>();
         currentOffset = PositionOffsets[positionIndex];
-    }
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        }
 
     private void Update()
     {
+
         switch (currentState)
         {
             case SwordState.Held:
@@ -69,6 +92,9 @@ public class Sword : MonoBehaviour
                 break;
             case SwordState.Thrown:
                 HandleThrownState();
+                break;
+            case SwordState.Defend:
+                HandleDefendState();
                 break;
             
         }
@@ -93,43 +119,54 @@ public class Sword : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W) && holder.CompareTag("Player 1") && positionIndex == 0)
         {
             isAiming = true;
+            holderScript.animator.SetBool("isAiming", true);
         }
         else if (Input.GetKeyUp(KeyCode.S) && holder.CompareTag("Player 1") && isAiming == true)
         {
             isAiming = false;
+            holderScript.animator.SetBool("isAiming", false);
             // 恢复剑的默认旋转
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }else if (Input.GetKeyDown(KeyCode.UpArrow) && holder.CompareTag("Player 2") && positionIndex == 0)
         {
             isAiming = true;
+            holderScript.animator.SetBool("isAiming", true);
         }
         else if (Input.GetKeyUp(KeyCode.DownArrow) && holder.CompareTag("Player 2") && isAiming == true)
         {
             isAiming = false;
+            holderScript.animator.SetBool("isAiming", false);
             // 恢复剑的默认旋转
             transform.rotation = Quaternion.Euler(0, 0, 0);
         }
         
-         if (Input.GetKeyDown(KeyCode.V) && holder.CompareTag("Player 1") && isAiming == false)
+         if (Input.GetKeyDown(KeyCode.H) && holder.CompareTag("Player 1") && isAiming == false)
+        {
+            StartDefending();
+            
+        }
+        if (Input.GetKeyDown(KeyCode.Comma) && holder.CompareTag("Player 2") && isAiming == false)
         {
             StartDefending();
             
         }
 
-        if (isDefending)
-        {
-            HandleDefendingRotation();
+        //if (isDefending)
+        //{
+        //    HandleDefendingRotation();
 
-        }
+        //}
         if (isAiming)
         {
             HandleAimingRotation();
             if (Input.GetKeyDown(KeyCode.F) && holder.CompareTag("Player 1"))
             {
+                holderScript.animator.SetBool("isAiming", false);
                 Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0));
                 isAiming = false;
             }else if (Input.GetKeyDown(KeyCode.M) && holder.CompareTag("Player 2"))
             {
+                holderScript.animator.SetBool("isAiming", false);
                 Throw(new Vector2(Mathf.Sign(holder.transform.localScale.x), 0));
                 isAiming = false;
             }
@@ -138,22 +175,46 @@ public class Sword : MonoBehaviour
         {
             HandlePositionAdjustment();
             // 攻击操作
-            if (Input.GetKeyDown(KeyCode.F) && !isAttacking && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
+            if (Input.GetKeyDown(KeyCode.F) && isAttacking == false && holder.CompareTag("Player 1") && !isAiming && holderScript.isGrounded != false)
             {
+                Debug.Log(this.name + "戳了");
+                isAttacking = true;
+                holderScript.animator.SetBool("isAttacking", true);
                 StartCoroutine(Thrust());
+                StartCoroutine(ThrustCD());
+
             }
-            else if (Input.GetKeyDown(KeyCode.M) && !isAttacking && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
+            else if (Input.GetKeyDown(KeyCode.M) && isAttacking == false && holder.CompareTag("Player 2") && !isAiming && holderScript.isGrounded != false)
             {
+                Debug.Log(this.name + "戳了");
+                isAttacking = true;
+                holderScript.animator.SetBool("isAttacking", true);
                 StartCoroutine(Thrust());
+                StartCoroutine(ThrustCD());
             }
         }
 
         
     }
 
+    private IEnumerator ThrustCD()
+    {
+        yield return new WaitForSeconds(0.3f); // 等待指定时间
+        isAttacking = false;
+        holderScript.animator.SetBool("isAttacking", false);
+        
+    }
+
+    private void HandleDefendState()
+    {
+        HandleDefendingRotation();
+        DenfenseKnock();
+    }
     private void StartDefending() {
-        isDefending = true;
+        currentState = SwordState.Defend;
         holderScript.isDefending = true;
+        holderScript.animator.SetBool("isParry", true);
+
         StartCoroutine(ResetDefense());
     }
     private void HandleDefendingRotation()
@@ -162,18 +223,21 @@ public class Sword : MonoBehaviour
         
         if(direction < 0) {
             transform.rotation = Quaternion.Euler(0, 0, backAngle * direction);
-            aimOffset = new Vector3(-1f,1f, 0);
-            transform.position = holder.transform.position + aimOffset ;
+            
+            rigidSword.MovePosition(holder.transform.position + Defenseoffset1);
+            //transform.position = holder.transform.position + aimOffset ;
         }else if(direction > 0) {
             transform.rotation = Quaternion.Euler(0, 0, frontAngle * direction);
-            aimOffset = new Vector3(1f,1f, 0);
-            transform.position = holder.transform.position + aimOffset ;
+            
+            rigidSword.MovePosition(holder.transform.position + Defenseoffset2);
+            //transform.position = holder.transform.position + aimOffset ;
         }
     }
     private IEnumerator ResetDefense()
     {
         yield return new WaitForSeconds(0.8f); // 等待指定时间
-        isDefending = false; // 设置为false
+        holderScript.animator.SetBool("isParry", false);
+        currentState = SwordState.Held;
         holderScript.isDefending = false;
         transform.rotation = Quaternion.Euler(0, 0, 0);
     }
@@ -187,6 +251,14 @@ public class Sword : MonoBehaviour
         rigidSword.isKinematic = false;
         rigidSword.constraints = RigidbodyConstraints2D.None;
         swordCollider.enabled = true;
+        Vector3 uplocation = new Vector3(0, 10f, 0);
+        
+        if(holder != null)
+        {
+            holder = null;
+        }
+        // 开启旋转逻辑
+        StartCoroutine(RotateSwordWhileFalling());
 
         DisableNonGroundCollisions();
     }
@@ -211,13 +283,46 @@ public class Sword : MonoBehaviour
     /// </summary>
     private void FollowHolder()
     {
-        
+
         float direction = Mathf.Sign(holder.transform.localScale.x); // +1 for right, -1 for left
         Vector3 targetPosition = holder.transform.position + new Vector3(padding.x * direction, padding.y, padding.z);
         //transform.position = targetPosition;
         rigidSword.MovePosition(targetPosition);
+        if (direction == 1 && isAiming == false)
+        {
+            spriteRenderer.flipX = false;
+            //Debug.Log(direction);
+        }
+        else if (direction == -1) 
+        {
+            spriteRenderer.flipX = true;
+            //Debug.Log(direction);
+        }
+        
+        
         // 禁用与持有者的碰撞
         Physics2D.IgnoreCollision(holder.GetComponent<Collider2D>(), swordCollider, true);
+
+        if (holder.GetComponent<PlayerMovement>().isRunning)
+        {
+            SetCollisionEnabled(false);
+
+            if (!isAiming)
+            {
+                float rotationAngle = 45f * direction; // 根据朝向设置旋转角度
+                transform.position = holder.GetComponent<PlayerMovement>().transform.position;
+                transform.rotation = Quaternion.Euler(0, 0, rotationAngle);
+            }
+        }
+        else 
+        {
+            SetCollisionEnabled(true);
+            if (!isAiming)
+            {
+                transform.rotation = Quaternion.Euler(0, 0, 0);
+            }
+
+        }
     }
 
     /// <summary>
@@ -225,20 +330,64 @@ public class Sword : MonoBehaviour
     /// </summary>
     private void HandlePositionAdjustment()
     {
+        
         if (Input.GetKeyDown(KeyCode.W) && positionIndex > 0 && holder.CompareTag("Player 1"))
         {
             positionIndex--;
+            moved = true;
+            if(resetMovedCoroutine != null)
+            {
+                StopCoroutine(resetMovedCoroutine);
+            }
+            // 启动新的协程以延迟重置 moved
+            resetMovedCoroutine = StartCoroutine(ResetMoved());
         }
         else if (Input.GetKeyDown(KeyCode.S) && positionIndex < PositionOffsets.Length - 1 && holder.CompareTag("Player 1"))
         {
             positionIndex++;
-        }else if (Input.GetKeyDown(KeyCode.DownArrow) && positionIndex < PositionOffsets.Length - 1 && holder.CompareTag("Player 2"))
+            moved = true;
+            if (resetMovedCoroutine != null)
+            {
+                StopCoroutine(resetMovedCoroutine);
+            }
+            // 启动新的协程以延迟重置 moved
+            resetMovedCoroutine = StartCoroutine(ResetMoved());
+        }
+        else if (Input.GetKeyDown(KeyCode.DownArrow) && positionIndex < PositionOffsets.Length - 1 && holder.CompareTag("Player 2"))
         {
             positionIndex++;
-        }else if(Input.GetKeyDown(KeyCode.UpArrow) && positionIndex > 0 && holder.CompareTag("Player 2"))
+            moved = true;
+            if (resetMovedCoroutine != null)
+            {
+                StopCoroutine(resetMovedCoroutine);
+            }
+            // 启动新的协程以延迟重置 moved
+            resetMovedCoroutine = StartCoroutine(ResetMoved());
+        }
+        else if(Input.GetKeyDown(KeyCode.UpArrow) && positionIndex > 0 && holder.CompareTag("Player 2"))
         {
             positionIndex--;
+            moved = true;
+            if (resetMovedCoroutine != null)
+            {
+                StopCoroutine(resetMovedCoroutine);
+            }
+            // 启动新的协程以延迟重置 moved
+            resetMovedCoroutine = StartCoroutine(ResetMoved());
         }
+
+        if (moved)
+        {
+            // 检测是否可以打掉另一把剑
+            TryKnockOtherSword();
+        }
+
+        if (isDefending)
+        {
+            Debug.Log("hahaha");
+            moved = false;
+        }
+
 
         currentOffset = PositionOffsets[positionIndex];
         float facingDirection = holder.transform.localScale.x;
@@ -250,6 +399,13 @@ public class Sword : MonoBehaviour
 
         // Adjust the sword's position based on the current offset and facing direction
         rigidSword.MovePosition(target);
+
+       
+    }
+    private IEnumerator ResetMoved()
+    {
+        yield return new WaitForSeconds(0.7f); // 等待半秒
+        moved = false;
     }
 
     /// <summary>
@@ -261,12 +417,16 @@ public class Sword : MonoBehaviour
         
         if(direction < 0) {
             transform.rotation = Quaternion.Euler(0, 0, 70f * direction);
-            aimOffset = new Vector3(1f,1f, 0);
-            transform.position = holder.transform.position + aimOffset ;
+            aimOffset.x = aimX;
+            
+            rigidSword.MovePosition(holder.transform.position + aimOffset);
+            //transform.position = holder.transform.position + aimOffset ;
         }else if(direction > 0) {
             transform.rotation = Quaternion.Euler(0, 0, -105f * direction);
-            aimOffset = new Vector3(-1f,1f, 0);
-            transform.position = holder.transform.position + aimOffset ;
+            aimOffset.x = -aimX;
+            spriteRenderer.flipX = true;
+            rigidSword.MovePosition(holder.transform.position + aimOffset);
+            //transform.position = holder.transform.position + aimOffset ;
         }
         
     }
@@ -277,19 +437,21 @@ public class Sword : MonoBehaviour
     private IEnumerator Thrust()
     {
         float elapsedTime = 0f;
-        float duration = 0.2f; // Attack duration
+        float duration = 0.3f; // Attack duration
 
-        Vector3 targetPosition = transform.localPosition + new Vector3(holder.transform.localScale.x * 1.5f, 0, 0);
-
+        Vector3 targetPosition = transform.localPosition + new Vector3(holder.transform.localScale.x * 0.2f, 0, 0);
+       
         while (elapsedTime < duration)
         {
-            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, elapsedTime / duration);
+            rigidSword.MovePosition(targetPosition);
+            //transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, elapsedTime / duration);
             elapsedTime += Time.deltaTime;
+            
             yield return null;
         }
 
 
-        isAttacking = false;
+        
     }
     public void PickUp(GameObject newHolder)
     {
@@ -338,7 +500,8 @@ public class Sword : MonoBehaviour
         rigidSword.constraints = RigidbodyConstraints2D.None; // 解锁旋转
         rigidSword.isKinematic = false;
         rigidSword.velocity = direction * throwSpeed;
-        
+        audioSource.clip = throwSword;
+        audioSource.Play();
 
         if (previousHolder != null)
         {
@@ -380,6 +543,7 @@ public class Sword : MonoBehaviour
         //StartCoroutine(SpinSwordInAir());
     }
 
+    //扔的时候旋转
     private IEnumerator SpinSwordInAir()
     {
         while (currentState == SwordState.Thrown)
@@ -388,6 +552,21 @@ public class Sword : MonoBehaviour
             yield return null;
         }
     }
+    //掉落的时候旋转
+    private IEnumerator RotateSwordWhileFalling()
+    {
+        while (!IsGrounded()) // 检查是否落地
+        {
+            transform.Rotate(0, 0, 10 * Time.deltaTime); // 每秒旋转360度
+            yield return null;
+        }
+
+        // 落地后停止旋转
+        rigidSword.angularVelocity = 0f;
+        transform.rotation = Quaternion.Euler(0, 0, 0); // 复位旋转
+    }
+
+
     /// <summary>
     /// 使剑仅与地面碰撞
     /// </summary>
@@ -410,6 +589,130 @@ public class Sword : MonoBehaviour
             yield return null;
         }
     }
+
+    
+    //除你武器部分
+    private void TryKnockOtherSword()
+    {
+        // 获取当前剑的碰撞范围内的所有碰撞体
+        Vector2 detectionSize = new Vector2(swordCollider.bounds.size.x, swordCollider.bounds.size.y * 2);
+        Collider2D[] colliders = Physics2D.OverlapBoxAll(transform.position, detectionSize, 0);
+
+        Debug.Log(this.name + "尝试判断上下是否有剑");
+
+        foreach (var collider in colliders)
+        {
+            Sword otherSword = collider.GetComponent<Sword>();
+
+            if (otherSword != null && otherSword != this)
+            {
+                // 检查上下位置关系
+                float yDifference = transform.position.y - otherSword.transform.position.y;
+                Debug.Log(this.name + "正在检查上下关系");
+                if (yDifference > 0.1f) // 当前剑在上方并向下调整
+                {
+                    Debug.Log("Knocked the other sword from above!");
+
+                    DetachOtherSword(otherSword); // 调用解绑逻辑
+                    moved = false;
+                }
+                else if (yDifference < 0f) // 当前剑在下方并向上调整
+                {
+
+                    Debug.Log("Knocked the other sword from below!");
+                    DetachOtherSword(otherSword); // 调用解绑逻辑
+                    moved = false;
+                }
+                
+            }
+           
+        }
+       
+    }
+    private void DenfenseKnock()
+    {
+        // 获取当前剑的碰撞范围内的所有碰撞体
+        Collider2D[] colliders = Physics2D.OverlapBoxAll(transform.position, swordCollider.bounds.size, 0);
+        Debug.Log("Try to defense down");
+        
+        foreach (var collider in colliders)
+        {
+            Sword otherSword = collider.GetComponent<Sword>();
+            if (otherSword != null && otherSword != this)
+            {
+
+                float horizontalDirection = otherSword.transform.position.x - transform.position.x;
+
+                // Normalize to determine the direction (-1 for left, 1 for right)
+                float directionSign = Mathf.Sign(horizontalDirection);
+
+                // Calculate target positions for both objects
+                Vector2 thisTargetPosition = rigidHolder.position - new Vector2(directionSign * moveDistance, 0f);
+                // Apply horizontal forces to both objects
+
+                StartCoroutine(MoveToPosition(rigidHolder, thisTargetPosition, moveSpeed));
+                DetachOtherSword(otherSword); // 调用解绑逻辑
+                //Vector3 uplocation = new Vector3(0, 2f, 0);
+               // otherSword.transform.localPosition = Vector3.Lerp(transform.localPosition, uplocation, 1f);
+                //otherSword.rigidSword.MovePosition(uplocation);
+            }
+        }
+    }
+
+
+    public void DetachOtherSword(Sword otherSword)
+    {
+        if (otherSword.holder != null)
+        {
+            //otherSword.previousHolder = holder;
+            // 获取持有者的 PlayerMovement 脚本
+            PlayerMovement otherHolderScript = otherSword.holder.GetComponent<PlayerMovement>();
+            audioSource.clip = parrySuc;
+            audioSource.Play();
+            if (otherHolderScript != null)
+            {
+                // 清除持有者对剑的引用
+                otherHolderScript.currentSword = null;
+            }
+
+            // 清除剑对持有者的引用
+            otherSword.holder = null;
+        }
+
+        // 更新剑的状态为 Dropped
+        otherSword.currentState = SwordState.Dropped;
+        // 确保剑恢复物理行为
+        otherSword.rigidSword.isKinematic = false;
+        otherSword.rigidSword.constraints = RigidbodyConstraints2D.None;
+
+    }
+
+    public void DetachSelfSword()
+    {
+        if (holder != null)
+        {
+            //otherSword.previousHolder = holder;
+            // 获取持有者的 PlayerMovement 脚本
+            PlayerMovement otherHolderScript = holder.GetComponent<PlayerMovement>();
+
+            if (otherHolderScript != null)
+            {
+                // 清除持有者对剑的引用
+                otherHolderScript.currentSword = null;
+            }
+
+            // 清除剑对持有者的引用
+            holder = null;
+        }
+
+        // 更新剑的状态为 Dropped
+        currentState = SwordState.Dropped;
+        // 确保剑恢复物理行为
+        rigidSword.isKinematic = false;
+        rigidSword.constraints = RigidbodyConstraints2D.None;
+
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Rigidbody2D otherRb = collision.rigidbody;
@@ -428,6 +731,11 @@ public class Sword : MonoBehaviour
             if (collision.gameObject.CompareTag("Player 1") || collision.gameObject.CompareTag("Player 2"))
             {
                 Debug.Log("Sword hit player: " + collision.gameObject.name);
+                audioSource.clip = stabSound;
+                audioSource.Play();
+                GameObject death = Instantiate(previousHolder.GetComponent<PlayerMovement>().deathObject, collision.transform.localPosition, Quaternion.identity);
+                // 确保在动画结束后销毁
+                DestroyAfterAnimation(death);
                 Destroy(collision.gameObject);
                 camera.deathnum++;
                 currentState = SwordState.Dropped;
@@ -437,6 +745,14 @@ public class Sword : MonoBehaviour
             if (collision.gameObject.CompareTag("Ground"))
             {
                 Debug.Log("Sword hit the ground.");
+                audioSource.clip = clashSound;
+                audioSource.Play();
+                currentState = SwordState.Dropped;
+            }
+
+            if (collision.gameObject.CompareTag("sword"))
+            {
+                Debug.Log("Sword hit the sword.");
                 currentState = SwordState.Dropped;
             }
         }
@@ -444,9 +760,12 @@ public class Sword : MonoBehaviour
 
         if (currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && !isDefending) 
         {
+            Sword otherSword = collision.gameObject.GetComponent<Sword>();
+            audioSource.clip = swordTouch;
+            audioSource.Play();
             Debug.Log("Collided with other sword");
             float horizontalDirection = collision.transform.position.x - transform.position.x;
-            Sword otherSword = collision.gameObject.GetComponent<Sword>();
+            
             // Normalize to determine the direction (-1 for left, 1 for right)
             float directionSign = Mathf.Sign(horizontalDirection);
 
@@ -455,24 +774,70 @@ public class Sword : MonoBehaviour
             // Apply horizontal forces to both objects
             StartCoroutine(MoveToPosition(rigidHolder, thisTargetPosition, moveSpeed));
         }else if(currentState == SwordState.Held && collision.gameObject.CompareTag("sword") && isDefending) {
-            /*float horizontalDirection = collision.transform.position.x - transform.position.x;
-
-            // Normalize to determine the direction (-1 for left, 1 for right)
-            float directionSign = -Mathf.Sign(horizontalDirection);
-            Vector2 thisTargetPosition = rigidHolder.position - new Vector2(directionSign * moveDistance * 2, 0f);
-            // Apply horizontal forces to both objects
-            Sword otherSword = collision.gameObject.GetComponent<Sword>();
-            StartCoroutine(MoveToPosition(otherSword.rigidHolder, thisTargetPosition, moveSpeed));*/
+            Debug.Log("Enter defense judge");
+            //DenfenseKnock();
+            //这个逻辑写在其它部分了。。。
         } 
         if (holder != null)
         {
             if (!collision.gameObject.CompareTag(holder.tag) && collision.gameObject.layer == 6)
             {
+                audioSource.clip = stabSound;
+                audioSource.Play();
+                //GameObject death = Instantiate(deathObject, collision.gameObject.transform);
                 Debug.Log("Kill" + collision.gameObject.name);
                 camera.deathnum++;
+                GameObject death = Instantiate(holder.GetComponent<PlayerMovement>().deathObject, collision.transform.localPosition, Quaternion.identity);
                 Destroy(collision.gameObject);
+                // 确保在动画结束后销毁
+                DestroyAfterAnimation(death);
             }
 
         }
+
     }
+    void DestroyAfterAnimation(GameObject obj)
+    {
+        Animator animator = obj.GetComponent<Animator>();
+        if (animator != null)
+        {
+            // 获取动画时长并启动销毁协程
+            float animationDuration = animator.GetCurrentAnimatorStateInfo(0).length;
+            StartCoroutine(DestroyAfterDelay(obj, animationDuration));
+        }
+        else
+        {
+            // 如果没有动画，立即销毁
+            Destroy(obj);
+        }
+    }
+    IEnumerator DestroyAfterDelay(GameObject obj, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Destroy(obj);
+    }
+
+    private bool IsGrounded()
+    {
+        Collider2D[] hits = Physics2D.OverlapBoxAll(transform.position, swordCollider.bounds.size, 0);
+        foreach (var hit in hits)
+        {
+            if (hit.CompareTag("Ground"))
+            {
+                
+                return true;
+            }
+        }
+        return false;
+    }
+    private void SetCollisionEnabled(bool isEnabled)
+    {
+        Collider2D[] colliders = GetComponents<Collider2D>(); // 获取该对象上的所有碰撞体
+        foreach (Collider2D collider in colliders)
+        {
+            collider.enabled = isEnabled; // 启用或禁用碰撞体
+        }
+    }
+
+
 }

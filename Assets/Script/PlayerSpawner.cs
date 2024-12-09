@@ -4,6 +4,7 @@ using UnityEngine;
 public class PlayerSpawner : MonoBehaviour
 {
     public GameObject playerPrefab; // Reference to the player prefab
+    public GameObject swordPrefab;
     public Vector3 spawnOffset = new Vector3(0, 0, 5); // Offset relative to the camera's position and forward direction
 
     public float respawnCooldown = 3f; // Cooldown in seconds
@@ -43,7 +44,13 @@ public class PlayerSpawner : MonoBehaviour
         // Spawn the player prefab at the calculated spawn point
         if (playerPrefab != null)
         {
-            Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
+            GameObject player = Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
+            // Spawn the sword near the player
+            Vector3 swordSpawnPoint = spawnPoint + new Vector3(0.5f, 0.5f, 0); // Adjust offset as needed
+            GameObject sword = Instantiate(swordPrefab, swordSpawnPoint, Quaternion.identity);
+            Sword swordScript = sword.GetComponent<Sword>();
+            swordScript.PickUp(player);
+            player.GetComponent<PlayerMovement>().currentSword = sword.GetComponent<Sword>();
             camera.deathnum--;
         }
 
